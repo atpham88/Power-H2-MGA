@@ -1,0 +1,117 @@
+GAMS 30.2.0  r482c588 Released Feb  7, 2020 WEX-WEI x86 64bit/MS Windows 06/20/21 18:04:36 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  *Michael Craig 16 Apr 2020
+   2   
+INCLUDE    C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\GAMS\EDAndUCSha
+           redFeatures.gms
+   4  *Michael Craig 14 May 2020
+   5   
+   6  Sets
+   7  *Existing generators
+   8           egu                             existing generators
+   9           windegu(egu)                    existing wind generators
+  10           solaregu(egu)                   existing solar generators
+  11           h                               hours
+  12           ;
+  13   
+  14  Parameters
+  15  *SIZE PARAMETERS [GW]
+  16           pCapac(egu)                     hourly capacity of existing gener
+      ators accounting for curtailments [GW]
+  17  *HEAT RATES [MMBtu/GWh]
+  18           pHr(egu)                        heat rate of existing generators 
+      [MMBtu per GWh]
+  19  *COST PARAMETERS
+  20           pOpcost(egu)                    total operational cost [thousandU
+      SD per GWh] = VOM + FuelCost*HR + EmsCost*EmsRate*HR
+  21  *RAMP RATES [GW/hr]
+  22           pRamprate(egu)                  up and down ramp rate of EGU [GW 
+      per hr]
+  23  *EMISSIONS RATES [short ton/MMBtu]
+  24           pCO2emrate(egu)                 CO2 emissions rate of existing ge
+      nerators [short ton per MMBtu]
+  25  *EMISSIONS COST [$/short ton]
+  26           pCO2cost
+  27  *RENEWABLE GENERATION CAPS
+  28           pMaxgenwind(h)                  max hourly generation for existin
+      g wind [GWh]
+  29           pMaxgensolar(h)                 max hourly generation for existin
+      g solar [GWh]
+  30  *HOURLY ELECTRICITY DEMAND [GWh]
+  31           pDemand(h)                      hourly electricity demand [GWh]
+  32           pDemandShifter                  demand shifter (percentage)
+  33           pDemandShiftingBlock
+  34  *COST OF NONSERVED ENERGY [THOUSAND$/GWH]
+  35           pCnse                                   cost of non-served energy
+       [thousandUSD per GWh]
+  36  *HOURLY RESERVE REQUIREMENTS [GW]
+  37           pRegupreserves(h)         regulation up reserve [GW]
+  38           pFlexreserves(h)
+  39           pContreserves(h)
+  40  *RESERVE PROVISION PARAMETERS
+  41  *Convert ramp rate to reserve timeframe
+  42           pRampratetoregreservescalar     converts ramp rate timeframe to r
+      eg reserve timeframe
+  43           pRampratetoflexreservescalar    converts ramp rate timeframe to s
+      pin reserve timeframe
+  44           pRampratetocontreservescalar    converts ramp rate timeframe to s
+      pin reserve timeframe
+  45  *Set whether generator can provide reserve
+  46           pRegeligible(egu)               existing generators eligible to p
+      rovide reg reserves [0] or not [1]
+  47           pFlexeligible(egu)
+  48           pConteligible(egu)
+  49  *Set max reserve offer based on eligibility and ramp rate
+  50           pMaxflexoffer(egu)
+  51           pMaxcontoffer(egu)
+  52           pMaxregupoffer(egu)
+  53           ;
+  54   
+  55  $abort 'no include file name for data file provided'
+****       $343
+**** LINE     52 INCLUDE     C:\Users\atpha\Documents\Postdocs\Projects\NETs\Mod
+                             el\GAMS\EDAndUCSharedFeatures.gms
+**** LINE      3 INPUT       C:\Users\atpha\Documents\Postdocs\Projects\NETs\Mod
+                             el\GAMS\CESharedFeatures.gms
+GAMS 30.2.0  r482c588 Released Feb  7, 2020 WEX-WEI x86 64bit/MS Windows 06/20/21 18:04:36 Page 2
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Error Messages
+
+
+343  Abort triggered by above statement
+
+**** 1 ERROR(S)   0 WARNING(S)
+GAMS 30.2.0  r482c588 Released Feb  7, 2020 WEX-WEI x86 64bit/MS Windows 06/20/21 18:04:36 Page 3
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  C:\Users\atpha\Documents\Postdocs\Proj
+                                          ects\NETs\Model\GAMS\CESharedFeatures.
+                                          gms
+     2        3 INCLUDE        1       3  .C:\Users\atpha\Documents\Postdocs\Pro
+                                           jects\NETs\Model\GAMS\EDAndUCSharedFe
+                                           atures.gms
+
+
+COMPILATION TIME     =        0.078 SECONDS      2 MB  30.2.0 r482c588 WEX-WEI
+
+
+USER: An Pham, Single User License                   G210526|0002AO-GEN
+      University of Michigan, School for Environment and SustainDC15829
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\GAMS\CESharedFe
+           atures.gms
+Output     C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\GAMS\CESharedFe
+           atures.lst
+
+**** USER ERROR(S) ENCOUNTERED

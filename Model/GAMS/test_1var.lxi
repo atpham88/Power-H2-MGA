@@ -1,0 +1,25 @@
+B 3 C o m p i l a t i o n
+B 44 Equation Listing    SOLVE toyMod Using LP From line 33
+D 47 cost
+D 52 supply
+D 59 demand
+D 66 flow_pos
+D 73 flow_neg
+D 80 flow_bal
+B 86 Column Listing      SOLVE toyMod Using LP From line 33
+E 89 x
+E 104 y
+E 121 l
+E 132 z
+B 140 Model Statistics    SOLVE toyMod Using LP From line 33
+B 156 Solution Report     SOLVE toyMod Using LP From line 33
+F 186 cost
+F 190 supply
+F 197 demand
+F 204 flow_pos
+F 211 flow_neg
+F 220 flow_bal
+G 224 x
+G 231 y
+G 240 l
+G 241 z

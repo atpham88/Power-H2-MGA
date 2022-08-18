@@ -1,0 +1,23 @@
+PlantType,Lifetime(yrs)
+Coal Steam,65
+Coal Steam CCS,65
+IGCC,65
+Combined Cycle,55
+Combined Cycle CCS,55
+Combustion Turbine,30
+Fuel Cell,10
+Nuclear,100
+Biomass,40
+Wind,30
+Solar PV,20
+Geothermal,30
+Municipal Solid Waste,40
+Hydro,40
+Pumped Storage,40
+Non-Fossil Waste,40
+O/G Steam,55
+Landfill Gas,20
+Pet. Coke,65
+Fwaste,65
+Energy Storage,15
+Hydrogen,15

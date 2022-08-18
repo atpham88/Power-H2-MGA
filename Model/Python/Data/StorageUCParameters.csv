@@ -1,0 +1,11 @@
+Fuel,PlantType,LowerPlantSizeLimit,UpperPlantSizeLimit,PropertyName,PropertyValue,PropertyUnits
+Storage,Storage,0,999999,Min Stable Level,0,fraction of capacity
+Storage,Hydrogen,0,999999,Min Stable Level,0,fraction of capacity
+Storage,Storage,0,999999,Start Cost,0,xCapacity
+Storage,Hydrogen,0,999999,Start Cost,0,xCapacity
+Storage,Storage,0,999999,Min Down Time,0,hours
+Storage,Hydrogen,0,999999,Min Down Time,0,hours
+Storage,Storage,0,999999,Ramp Rate,60,fraction of capacity/hr
+Storage,Hydrogen,0,999999,Ramp Rate,60,fraction of capacity/hr
+Storage,Storage,0,999999,Variable O&M Cost,0,$/MWh
+Storage,Hydrogen,0,999999,Variable O&M Cost,0,$/MWh

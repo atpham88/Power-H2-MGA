@@ -1,0 +1,3 @@
+Positive Variable
+	vN(tech)
+	;

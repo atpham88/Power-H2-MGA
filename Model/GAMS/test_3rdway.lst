@@ -1,0 +1,277 @@
+GAMS 30.2.0  r482c588 Released Feb  7, 2020 WEX-WEI x86 64bit/MS Windows 01/31/22 11:02:49 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  Sets
+   2         i   regions   / MISO, PJM /
+   3  Parameters
+   4         a(i)  capacity of plant in regions
+   5           /    MISO    200
+   6                PJM     600  /
+   7         b(i)  demand at regions
+   8           /    MISO    100
+   9                PJM     700  /
+  10         d(i)  current transmission capacity (MISO--from MISO PJM--from PJM)
+  11           /    MISO    10
+  12                PJM    10  /;
+  13   
+  14  Scalar f  cost of expanding 1 MW of line  /100/ ;
+  15  Scalar g  cost operation generation  /30/ ;
+  16   
+  17  Variables
+  18       x(i)  generation
+  19       y(i)  flows
+  20       l(i)  new capacity built
+  21       z     total transmission cost ;
+  22  Positive variables x,l;
+  23  Equations
+  24       cost        objective function
+  25       supply(i)   supply limit at plant i
+  26       demand(i)   satisfy demand
+  27       flow(i)     flow constrains
+  28       flow_bal     flow balance
+  29       flow_cons2(i) force lines built to have same capacity regardless of d
+      irection ;
+  30  cost ..        z  =e=  sum(i, f*l(i)*0.5)+sum(i, g*x(i)) ;
+  31  supply(i) ..   x(i)  =l=  a(i) ;
+  32  *flow(i) ..  y(i)  =l=  d(i) + l(i-1)+ l(i)$(ord(i)>=2) ;
+  33  flow(i) ..  y(i)  =l=  d(i) + l(i);
+  34  flow_cons2(i).. l(i-1)- l(i)$(ord(i)>=2) =e=0;
+  35  demand(i) ..   x(i) - y(i)  =e=  b(i) ;
+  36  flow_bal..  sum(i, y(i)) =e= 0;
+  37  Model toyMod /all/ ;
+  38  Solve toyMod using lp minimizing z ;
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  30.2.0 r482c588 WEX-WEI
+GAMS 30.2.0  r482c588 Released Feb  7, 2020 WEX-WEI x86 64bit/MS Windows 01/31/22 11:02:49 Page 2
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Equation Listing    SOLVE toyMod Using LP From line 38
+
+
+---- cost  =E=  objective function
+
+cost..  - 30*x(MISO) - 30*x(PJM) - 50*l(MISO) - 50*l(PJM) + z =E= 0 ; (LHS = 0)
+     
+
+---- supply  =L=  supply limit at plant i
+
+supply(MISO)..  x(MISO) =L= 200 ; (LHS = 0)
+     
+supply(PJM)..  x(PJM) =L= 600 ; (LHS = 0)
+     
+
+---- demand  =E=  satisfy demand
+
+demand(MISO)..  x(MISO) - y(MISO) =E= 100 ; (LHS = 0, INFES = 100 ****)
+     
+demand(PJM)..  x(PJM) - y(PJM) =E= 700 ; (LHS = 0, INFES = 700 ****)
+     
+
+---- flow  =L=  flow constrains
+
+flow(MISO)..  y(MISO) - l(MISO) =L= 10 ; (LHS = 0)
+     
+flow(PJM)..  y(PJM) - l(PJM) =L= 10 ; (LHS = 0)
+     
+
+---- flow_bal  =E=  flow balance
+
+flow_bal..  y(MISO) + y(PJM) =E= 0 ; (LHS = 0)
+     
+
+---- flow_cons2  =E=  force lines built to have same capacity regardless of dire
+                      ction
+
+flow_cons2(PJM)..  l(MISO) - l(PJM) =E= 0 ; (LHS = 0)
+     
+GAMS 30.2.0  r482c588 Released Feb  7, 2020 WEX-WEI x86 64bit/MS Windows 01/31/22 11:02:49 Page 3
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE toyMod Using LP From line 38
+
+
+---- x  generation
+
+x(MISO)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -30       cost
+        1       supply(MISO)
+        1       demand(MISO)
+
+x(PJM)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -30       cost
+        1       supply(PJM)
+        1       demand(PJM)
+
+
+---- y  flows
+
+y(MISO)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       demand(MISO)
+        1       flow(MISO)
+        1       flow_bal
+
+y(PJM)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       demand(PJM)
+        1       flow(PJM)
+        1       flow_bal
+
+
+---- l  new capacity built
+
+l(MISO)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -50       cost
+       -1       flow(MISO)
+        1       flow_cons2(PJM)
+
+l(PJM)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -50       cost
+       -1       flow(PJM)
+       -1       flow_cons2(PJM)
+
+
+---- z  total transmission cost
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       cost
+
+GAMS 30.2.0  r482c588 Released Feb  7, 2020 WEX-WEI x86 64bit/MS Windows 01/31/22 11:02:49 Page 4
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE toyMod Using LP From line 38
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS            9
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES            7
+NON ZERO ELEMENTS            19
+
+
+GENERATION TIME      =        0.047 SECONDS      4 MB  30.2.0 r482c588 WEX-WEI
+
+
+EXECUTION TIME       =        0.047 SECONDS      4 MB  30.2.0 r482c588 WEX-WEI
+GAMS 30.2.0  r482c588 Released Feb  7, 2020 WEX-WEI x86 64bit/MS Windows 01/31/22 11:02:49 Page 5
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE toyMod Using LP From line 38
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   toyMod              OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  38
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE            33000.0000
+
+ RESOURCE USAGE, LIMIT          0.016      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+IBM ILOG CPLEX   30.2.0 r482c588 Released Feb 07, 2020 WEI x86 64bit/MS Window
+--- GAMS/Cplex Link licensed for continuous and discrete problems.
+Cplex 12.10.0.0
+
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.01 ticks)
+Optimal solution found.
+Objective :       33000.000000
+
+
+                       LOWER     LEVEL     UPPER    MARGINAL
+
+---- EQU cost            .         .         .        1.000      
+
+  cost  objective function
+
+---- EQU supply  supply limit at plant i
+
+        LOWER     LEVEL     UPPER    MARGINAL
+
+MISO     -INF    200.000   200.000      .         
+PJM      -INF    600.000   600.000  -100.000      
+
+---- EQU demand  satisfy demand
+
+        LOWER     LEVEL     UPPER    MARGINAL
+
+MISO   100.000   100.000   100.000    30.000      
+PJM    700.000   700.000   700.000   130.000      
+
+---- EQU flow  flow constrains
+
+        LOWER     LEVEL     UPPER    MARGINAL
+
+MISO     -INF     10.000    10.000  -100.000      
+PJM      -INF   -190.000    10.000      .         
+
+                       LOWER     LEVEL     UPPER    MARGINAL
+
+---- EQU flow_bal        .         .         .      130.000      
+
+  flow_bal  flow balance
+
+---- EQU flow_cons2  force lines built to have same capacity regardless of direc
+                     tion
+
+       LOWER     LEVEL     UPPER    MARGINAL
+
+PJM      .         .         .      -50.000      
+
+---- VAR x  generation
+
+        LOWER     LEVEL     UPPER    MARGINAL
+
+MISO      .      200.000     +INF       .         
+PJM       .      600.000     +INF       .         
+
+---- VAR y  flows
+
+        LOWER     LEVEL     UPPER    MARGINAL
+
+MISO     -INF    100.000     +INF       .         
+PJM      -INF   -100.000     +INF       .         
+
+---- VAR l  new capacity built
+
+        LOWER     LEVEL     UPPER    MARGINAL
+
+MISO      .       90.000     +INF       .         
+PJM       .       90.000     +INF       .         
+
+                       LOWER     LEVEL     UPPER    MARGINAL
+
+---- VAR z              -INF  33000.000     +INF       .         
+
+  z  total transmission cost
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  30.2.0 r482c588 WEX-WEI
+
+
+USER: An Pham, Single User License                   G210526|0002AO-GEN
+      University of Michigan, School for Environment and SustainDC15829
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\test
+           _3rdway.gms
+Output     C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\test
+           _3rdway.lst

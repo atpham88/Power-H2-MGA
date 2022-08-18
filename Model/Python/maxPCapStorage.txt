@@ -1,0 +1,4 @@
+,0
+GAMS Symbol,0.0
+Battery Storage,1000.0
+Hydrogen,0.0

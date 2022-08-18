@@ -1,0 +1,197 @@
+GAMS 30.2.0  r482c588 Released Feb  7, 2020 WEX-WEI x86 64bit/MS Windows 01/31/22 14:24:22 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  Set i /NYBOS, NYDC, BOSNY, DCNY/;
+   2  Alias (i,ii);
+   3   
+   4  Parameter
+   5  h(i)
+   6  o(i)     origin of trip
+   7  /NYBOS 1, NYDC 1, BOSNY 2, DCNY 3/
+   8  e(i)     destination of trip
+   9  /NYBOS 2, NYDC 3, BOSNY 1, DCNY 1/;
+  10   
+  11   
+  12  Display i,o,e;
+  13   
+  14  Variable z, g(i);
+  15   
+  16  Equation dummy, k(i,ii);
+  17   
+  18  dummy.. z =e= 1;
+  19  k(i,ii)$(o(i)=e(ii) and o(ii)=e(i)).. g(i) =e= g(ii);
+  20  *k(i).. g(i)$(ORD(i)=1) - g(i)$(ORD(i)=3) =e= 0;
+  21  *k(i).. g(i)$(ord(i)>=3) =e= g(i-2)
+  22  *k(i).. sum((i,ii)$[o(i)=e(ii) and o(ii)=e(i)],g(ii)) =e= 0
+  23  *k(i).. sum((i,ii),g(ii)) =e= 0
+  24  *k(i).. g(i)$(ord(i)>=3) + g(i-2) =e= 0
+  25  *k(i).. g(i) + g(i-2) =e= 0
+  26  option LimRow = 10;
+  27  model m /all/;
+  28  solve m min z use lp;
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  30.2.0 r482c588 WEX-WEI
+GAMS 30.2.0  r482c588 Released Feb  7, 2020 WEX-WEI x86 64bit/MS Windows 01/31/22 14:24:22 Page 2
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+E x e c u t i o n
+
+
+----     12 SET i  
+
+NYBOS,    NYDC ,    BOSNY,    DCNY 
+
+
+----     12 PARAMETER o  origin of trip
+
+NYBOS 1.000,    NYDC  1.000,    BOSNY 2.000,    DCNY  3.000
+
+
+----     12 PARAMETER e  destination of trip
+
+NYBOS 2.000,    NYDC  3.000,    BOSNY 1.000,    DCNY  1.000
+
+GAMS 30.2.0  r482c588 Released Feb  7, 2020 WEX-WEI x86 64bit/MS Windows 01/31/22 14:24:22 Page 3
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Equation Listing    SOLVE m Using LP From line 28
+
+
+---- dummy  =E=  
+
+dummy..  z =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+
+---- k  =E=  
+
+k(NYBOS,BOSNY)..  g(NYBOS) - g(BOSNY) =E= 0 ; (LHS = 0)
+     
+k(NYDC,DCNY)..  g(NYDC) - g(DCNY) =E= 0 ; (LHS = 0)
+     
+k(BOSNY,NYBOS)..  - g(NYBOS) + g(BOSNY) =E= 0 ; (LHS = 0)
+     
+k(DCNY,NYDC)..  - g(NYDC) + g(DCNY) =E= 0 ; (LHS = 0)
+     
+GAMS 30.2.0  r482c588 Released Feb  7, 2020 WEX-WEI x86 64bit/MS Windows 01/31/22 14:24:22 Page 4
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE m Using LP From line 28
+
+
+---- z  
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dummy
+
+
+---- g  
+
+g(NYBOS)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       k(NYBOS,BOSNY)
+       -1       k(BOSNY,NYBOS)
+
+g(NYDC)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       k(NYDC,DCNY)
+       -1       k(DCNY,NYDC)
+
+g(BOSNY)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       k(NYBOS,BOSNY)
+        1       k(BOSNY,NYBOS)
+
+REMAINING ENTRY SKIPPED
+GAMS 30.2.0  r482c588 Released Feb  7, 2020 WEX-WEI x86 64bit/MS Windows 01/31/22 14:24:22 Page 5
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m Using LP From line 28
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS            5
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            5
+NON ZERO ELEMENTS             9
+
+
+GENERATION TIME      =        0.032 SECONDS      4 MB  30.2.0 r482c588 WEX-WEI
+
+
+EXECUTION TIME       =        0.032 SECONDS      4 MB  30.2.0 r482c588 WEX-WEI
+GAMS 30.2.0  r482c588 Released Feb  7, 2020 WEX-WEI x86 64bit/MS Windows 01/31/22 14:24:22 Page 6
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m Using LP From line 28
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m                   OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  28
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE                1.0000
+
+ RESOURCE USAGE, LIMIT          0.015      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+IBM ILOG CPLEX   30.2.0 r482c588 Released Feb 07, 2020 WEI x86 64bit/MS Window
+--- GAMS/Cplex Link licensed for continuous and discrete problems.
+Cplex 12.10.0.0
+
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.00 ticks)
+Optimal solution found.
+Objective :           1.000000
+
+
+                       LOWER     LEVEL     UPPER    MARGINAL
+
+---- EQU dummy          1.000     1.000     1.000     1.000      
+
+---- EQU k  
+
+               LOWER     LEVEL     UPPER    MARGINAL
+
+NYBOS.BOSNY      .         .         .         EPS       
+NYDC .DCNY       .         .         .         EPS       
+BOSNY.NYBOS      .         .         .         .         
+DCNY .NYDC       .         .         .         .         
+
+                       LOWER     LEVEL     UPPER    MARGINAL
+
+---- VAR z              -INF      1.000     +INF       .         
+
+---- VAR g  
+
+         LOWER     LEVEL     UPPER    MARGINAL
+
+NYBOS     -INF       .        +INF       .         
+NYDC      -INF       .        +INF       .         
+BOSNY     -INF       .        +INF       EPS       
+DCNY      -INF       .        +INF       EPS       
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  30.2.0 r482c588 WEX-WEI
+
+
+USER: An Pham, Single User License                   G210526|0002AO-GEN
+      University of Michigan, School for Environment and SustainDC15829
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\test
+           2.gms
+Output     C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\test
+           2.lst

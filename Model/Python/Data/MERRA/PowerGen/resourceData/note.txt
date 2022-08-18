@@ -1,0 +1,1 @@
+This is where raw resource data is saved/loaded if `--save_resource` is flagged.

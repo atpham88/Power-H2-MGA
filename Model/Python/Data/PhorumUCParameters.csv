@@ -1,0 +1,90 @@
+Fuel,PlantType,LowerPlantSizeLimit,UpperPlantSizeLimit,PropertyName,PropertyValue,PropertyUnits
+Coal,All,0,999999,Min Stable Level,0.4,fraction of capacity
+Oil,All,0,999999,Min Stable Level,0.25,fraction of capacity
+NaturalGas,All,0,999999,Min Stable Level,0.4,fraction of capacity
+Hydro,All,0,999999,Min Stable Level,0,fraction of capacity
+Nuclear,All,0,999999,Min Stable Level,0.9,fraction of capacity
+MSW,All,0,999999,Min Stable Level,0.4,fraction of capacity
+LF Gas,All,0,999999,Min Stable Level,0.4,fraction of capacity
+Fwaste,All,0,999999,Min Stable Level,0.4,fraction of capacity
+Geothermal,All,0,999999,Min Stable Level,0.4,fraction of capacity
+Non-Fossil,All,0,999999,Min Stable Level,0.4,fraction of capacity
+Pet. Coke,All,0,999999,Min Stable Level,0.4,fraction of capacity
+Solar,All,0,999999,Min Stable Level,0,fraction of capacity
+Wind,All,0,999999,Min Stable Level,0,fraction of capacity
+Biomass,All,0,999999,Min Stable Level,0.4,fraction of capacity
+Coal,All,0,999999,Start Cost,100,xCapacity
+Oil,Combustion Turbine,0,999999,Start Cost,25,xCapacity
+Oil,O/G Steam,0,999999,Start Cost,100,xCapacity
+NaturalGas,Combustion Turbine,0,999999,Start Cost,25,xCapacity
+NaturalGas,Combined Cycle,0,999999,Start Cost,100,xCapacity
+NaturalGas,O/G Steam,0,999999,Start Cost,100,xCapacity
+Hydro,All,0,999999,Start Cost,0.1,xCapacity
+Nuclear,All,0,999999,Start Cost,500,xCapacity
+LF Gas,All,0,999999,Start Cost,50,xCapacity
+MSW,All,0,999999,Start Cost,100,xCapacity
+Fwaste,All,0,999999,Start Cost,100,xCapacity
+Geothermal,All,0,999999,Start Cost,25,xCapacity
+Non-Fossil,All,0,999999,Start Cost,100,xCapacity
+Pet. Coke,All,0,999999,Start Cost,100,xCapacity
+Solar,All,0,999999,Start Cost,0.1,xCapacity
+Wind,All,0,999999,Start Cost,0.1,xCapacity
+Biomass,All,0,999999,Start Cost,100,xCapacity
+Coal,All,150,999999,Min Down Time,12,hours
+Coal,All,0,150,Min Down Time,6,hours
+Nuclear,All,0,999999,Min Down Time,20,hours
+NaturalGas,Combined Cycle,0,999999,Min Down Time,4,hours
+NaturalGas,Combustion Turbine,0,60,Min Down Time,1,hours
+NaturalGas,Combustion Turbine,60,140,Min Down Time,2,hours
+NaturalGas,Combustion Turbine,140,99999,Min Down Time,3,hours
+NaturalGas,O/G Steam,0,999999,Min Down Time,7,hours
+Oil,Combustion Turbine,0,60,Min Down Time,1,hours
+Oil,Combustion Turbine,60,140,Min Down Time,2,hours
+Oil,Combustion Turbine,140,99999,Min Down Time,3,hours
+Oil,O/G Steam,0,999999,Min Down Time,7,hours
+LF Gas,All,0,999999,Min Down Time,4,hours
+MSW,All,0,999999,Min Down Time,4,hours
+Fwaste,All,0,999999,Min Down Time,8,hours
+Hydro,All,0,99999,Min Down Time,0,hours
+Geothermal,All,0,999999,Min Down Time,2,hours
+Non-Fossil,All,0,999999,Min Down Time,4,hours
+Pet. Coke,All,0,999999,Min Down Time,6,hours
+Solar,All,0,999999,Min Down Time,0,hours
+Wind,All,0,999999,Min Down Time,0,hours
+Biomass,All,0,999999,Min Down Time,4,hours
+Coal,All,150,999999,Ramp Rate,0.179,fraction of capacity/hr
+Coal,All,0,150,Ramp Rate,0.35,fraction of capacity/hr
+NaturalGas,Combined Cycle,100,99999,Ramp Rate,0.318,fraction of capacity/hr
+NaturalGas,Combined Cycle,0,100,Ramp Rate,0.639,fraction of capacity/hr
+NaturalGas,Combustion Turbine,0,999999,Ramp Rate,0.342,fraction of capacity/hr
+NaturalGas,O/G Steam,0,999999,Ramp Rate,0.231,fraction of capacity/hr
+Oil,Combustion Turbine,0,999999,Ramp Rate,0.342,fraction of capacity/hr
+Oil,O/G Steam,0,999999,Ramp Rate,0.231,fraction of capacity/hr
+LF Gas,All,0,999999,Ramp Rate,1,fraction of capacity/hr
+MSW,All,0,999999,Ramp Rate,1,fraction of capacity/hr
+Nuclear,All,0,999999,Ramp Rate,0.08,fraction of capacity/hr
+Fwaste,All,0,999999,Ramp Rate,0.45,fraction of capacity/hr
+Hydro,All,0,999999,Ramp Rate,1,fraction of capacity/hr
+Geothermal,All,0,999999,Ramp Rate,0.342,fraction of capacity/hr
+Non-Fossil,All,0,999999,Ramp Rate,1,fraction of capacity/hr
+Pet. Coke,All,0,999999,Ramp Rate,0.35,fraction of capacity/hr
+Solar,All,0,999999,Ramp Rate,1,fraction of capacity/hr
+Wind,All,0,999999,Ramp Rate,1,fraction of capacity/hr
+Biomass,All,0,999999,Ramp Rate,1,fraction of capacity/hr
+Coal,All,0,999999,Variable O&M Cost,2.19,$/MWh
+NaturalGas,Combined Cycle,0,999999,Variable O&M Cost,3.78,$/MWh
+NaturalGas,Combustion Turbine,0,999999,Variable O&M Cost,6.54,$/MWh
+NaturalGas,O/G Steam,0,999999,Variable O&M Cost,4.29,$/MWh
+Oil,Combustion Turbine,0,999999,Variable O&M Cost,9.35,$/MWh
+Oil,O/G Steam,0,999999,Variable O&M Cost,6.13,$/MWh
+LF Gas,All,0,999999,Variable O&M Cost,42.3,$/MWh
+MSW,All,0,999999,Variable O&M Cost,42.3,$/MWh
+Nuclear,All,0,999999,Variable O&M Cost,7.95,$/MWh
+Fwaste,All,0,999999,Variable O&M Cost,2.19,$/MWh
+Hydro,All,0,999999,Variable O&M Cost,0,$/MWh
+Geothermal,All,0,999999,Variable O&M Cost,42.3,$/MWh
+Non-Fossil,All,0,999999,Variable O&M Cost,2.19,$/MWh
+Pet. Coke,All,0,999999,Variable O&M Cost,2.19,$/MWh
+Solar,All,0,999999,Variable O&M Cost,0,$/MWh
+Wind,All,0,999999,Variable O&M Cost,0,$/MWh
+Biomass,All,0,999999,Variable O&M Cost,42.3,$/MWh

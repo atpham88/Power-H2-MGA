@@ -1,0 +1,22 @@
+PlantType,Fuel Type,AEOTechnologyType,FOM(2012$/MW/yr),VOM(2012$/MWh),FOM(2012$/kW/yr)
+Coal Steam,Coal,Single Unit Advanced PC,37800,4.47,37.8
+Coal Steam CCS,Coal,Single Unit Advanced PC with CCS,80530,4.47,80.53
+IGCC,Coal,Single Unit IGCC,62250,7.22,62.25
+Combined Cycle,Natural Gas,Conventional CC,13170,3.6,13.17
+Combined Cycle CCS,Natural Gas,Advanced CC with CCS,31790,6.78,31.79
+Combustion Turbine,Natural Gas,Conventional CT,7340,15.45,7.34
+Fuel Cell,Natural Gas,Fuel Cells,0,43,0
+Nuclear,Nuclear Fuel,Dual Unit Nuclear,93280,2.14,93.28
+Biomass,Biomass,Biomass BFB,105630,5.26,105.63
+Onshore Wind,Wind,Onshore Wind,39550,0,39.55
+Solar PV,Solar,Photovoltaic,27750,0,27.75
+Geothermal,Geothermal,Goethermal - Binary,100000,0,100
+Municipal Solid Waste,MSW,Municipal Solid Waste,392820,8.75,392.82
+Hydro,Hydro,Conventional Hydroelectric,14130,0,14.13
+Pumped Storage,Hydro,Pumped Storage,18000,0,18
+Non-Fossil Waste,Non-Fossil Waste,NA,105630,5.26,105.63
+O/G Steam,Natural Gas,NA,37800,4.47,37.8
+Landfill Gas,Landfill Gas,NA,392820,8.75,392.82
+Pet. Coke,Pet. Coke,NA,37800,4.47,37.8
+Fossil Waste,Fwaste,NA,37800,4.47,37.8
+Tires,Tires,NA,105630,5.26,105.63

@@ -1,0 +1,24 @@
+--- Job test2.gms Start 01/29/22 14:09:44 30.2.0 r482c588 WEX-WEI x86 64bit/MS Windows
+--- GAMS Parameters defined
+    Input C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\test2.gms
+    PageSize 0
+    ScrDir C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\225a\
+    SysDir C:\GAMS\win64\30.2\
+    LogOption 3
+    ErrMsg 1
+    ErrorLog 99
+    IDE 1
+    LstTitleLeftAligned 1
+GAMS 30.2.0   Copyright (C) 1987-2020 GAMS Development. All rights reserved
+Licensee: An Pham, Single User License                   G210526|0002AO-GEN
+          University of Michigan, School for Environment and SustainDC15829
+          anph@umich.edu                                                   
+--- Starting compilation
+--- test2.gms(7) 3 Mb 1 Error
+*** Error 409 in C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\test2.gms
+    Unrecognizable item - skip to find a new statement
+      looking for a ';' or a key word to get started again
+--- test2.gms(7) 3 Mb 1 Error
+*** Status: Compilation error(s)
+--- Job test2.gms Stop 01/29/22 14:09:44 elapsed 0:00:00.012
+

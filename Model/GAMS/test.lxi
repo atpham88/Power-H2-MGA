@@ -1,0 +1,13 @@
+B 3 C o m p i l a t i o n
+B 25 Equation Listing    SOLVE m Using LP From line 13
+D 28 dummy
+D 33 e
+B 47 Column Listing      SOLVE m Using LP From line 13
+E 50 z
+E 57 g
+B 75 Model Statistics    SOLVE m Using LP From line 13
+B 91 Solution Report     SOLVE m Using LP From line 13
+F 121 dummy
+F 123 e
+G 135 z
+G 137 g

@@ -1,0 +1,21 @@
+B 3 C o m p i l a t i o n
+B 47 Equation Listing    SOLVE toyMod Using LP From line 36
+D 50 cost
+D 57 supply
+D 64 demand
+D 75 flow
+B 87 Column Listing      SOLVE toyMod Using LP From line 36
+E 90 x
+E 105 y
+E 124 l
+E 143 z
+B 151 Model Statistics    SOLVE toyMod Using LP From line 36
+B 167 Solution Report     SOLVE toyMod Using LP From line 36
+F 197 cost
+F 201 supply
+F 208 demand
+F 215 flow
+G 224 x
+G 231 y
+G 240 l
+G 251 z

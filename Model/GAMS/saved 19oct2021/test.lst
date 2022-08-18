@@ -1,0 +1,169 @@
+GAMS 30.2.0  r482c588 Released Feb  7, 2020 WEX-WEI x86 64bit/MS Windows 06/12/21 08:57:55 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  Set i /i1*i10/;
+   2  Alias (i,ii);
+   3   
+   4  Variable z, g(i);
+   5   
+   6  Equation dummy, e(i);
+   7   
+   8  dummy.. z =e= 1;
+   9  e(i)$(mod(ord(i),2)=1).. sum(ii$((ord(ii)>=ord(i) and (ord(ii)<=ord(i)+2))
+      ), g(ii)) =e= 0;
+  10   
+  11  option LimRow = 10;
+  12  model m /all/;
+  13  solve m min z use lp;
+
+
+COMPILATION TIME     =        0.047 SECONDS      3 MB  30.2.0 r482c588 WEX-WEI
+GAMS 30.2.0  r482c588 Released Feb  7, 2020 WEX-WEI x86 64bit/MS Windows 06/12/21 08:57:55 Page 2
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Equation Listing    SOLVE m Using LP From line 13
+
+
+---- dummy  =E=  
+
+dummy..  z =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+
+---- e  =E=  
+
+e(i1)..  g(i1) + g(i2) + g(i3) =E= 0 ; (LHS = 0)
+     
+e(i3)..  g(i3) + g(i4) + g(i5) =E= 0 ; (LHS = 0)
+     
+e(i5)..  g(i5) + g(i6) + g(i7) =E= 0 ; (LHS = 0)
+     
+e(i7)..  g(i7) + g(i8) + g(i9) =E= 0 ; (LHS = 0)
+     
+e(i9)..  g(i9) + g(i10) =E= 0 ; (LHS = 0)
+     
+GAMS 30.2.0  r482c588 Released Feb  7, 2020 WEX-WEI x86 64bit/MS Windows 06/12/21 08:57:55 Page 3
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE m Using LP From line 13
+
+
+---- z  
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dummy
+
+
+---- g  
+
+g(i1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       e(i1)
+
+g(i2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       e(i1)
+
+g(i3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       e(i1)
+        1       e(i3)
+
+REMAINING 7 ENTRIES SKIPPED
+GAMS 30.2.0  r482c588 Released Feb  7, 2020 WEX-WEI x86 64bit/MS Windows 06/12/21 08:57:55 Page 4
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE m Using LP From line 13
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS            6
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES           11
+NON ZERO ELEMENTS            15
+
+
+GENERATION TIME      =        0.344 SECONDS      4 MB  30.2.0 r482c588 WEX-WEI
+
+
+EXECUTION TIME       =        0.344 SECONDS      4 MB  30.2.0 r482c588 WEX-WEI
+GAMS 30.2.0  r482c588 Released Feb  7, 2020 WEX-WEI x86 64bit/MS Windows 06/12/21 08:57:55 Page 5
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE m Using LP From line 13
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m                   OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  13
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE                1.0000
+
+ RESOURCE USAGE, LIMIT          0.109      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+IBM ILOG CPLEX   30.2.0 r482c588 Released Feb 07, 2020 WEI x86 64bit/MS Window
+--- GAMS/Cplex Link licensed for continuous and discrete problems.
+Cplex 12.10.0.0
+
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+LP status(1): optimal
+Cplex Time: 0.03sec (det. 0.00 ticks)
+Optimal solution found.
+Objective :           1.000000
+
+
+                       LOWER     LEVEL     UPPER    MARGINAL
+
+---- EQU dummy          1.000     1.000     1.000     1.000      
+
+---- EQU e  
+
+      LOWER     LEVEL     UPPER    MARGINAL
+
+i1      .         .         .         EPS       
+i3      .         .         .         EPS       
+i5      .         .         .         EPS       
+i7      .         .         .         EPS       
+i9      .         .         .         EPS       
+
+                       LOWER     LEVEL     UPPER    MARGINAL
+
+---- VAR z              -INF      1.000     +INF       .         
+
+---- VAR g  
+
+       LOWER     LEVEL     UPPER    MARGINAL
+
+i1      -INF       .        +INF       .         
+i2      -INF       .        +INF       EPS       
+i3      -INF       .        +INF       .         
+i4      -INF       .        +INF       EPS       
+i5      -INF       .        +INF       .         
+i6      -INF       .        +INF       EPS       
+i7      -INF       .        +INF       .         
+i8      -INF       .        +INF       EPS       
+i9      -INF       .        +INF       .         
+i10     -INF       .        +INF       EPS       
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  30.2.0 r482c588 WEX-WEI
+
+
+USER: An Pham, Single User License                   G210526|0002AO-GEN
+      University of Michigan, School for Environment and SustainDC15829
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\GAMS\test.gms
+Output     C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\GAMS\test.lst
