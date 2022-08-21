@@ -1,14 +1,5 @@
 # Michael Craig
-
-# NOTES
-# Not co-optimizing regulation reserves + energy
-
-# TO DO (order of priority):
-# Add time-varying limits on quantify of new techs to add
-# Add contingency reserves into greenfield run
-# Allow wind & solar to provide all reserves - add constriants to GAMS limiting their generation
-# in CESharedFeatures
-# Make solar reserve calculation efficient
+# Updated 08/18/2022 by An P.
 
 import sys, os, csv, operator, copy, time, random, warnings, numpy as np, datetime as dt, pandas as pd
 from os import path
@@ -47,8 +38,6 @@ from WriteTimeDependentConstraints import writeTimeDependentConstraints
 from WriteBuildVariable import writeBuildVariable
 from CreateEmptyReserveDfs import createEmptyReserveDfs
 from SetupTransmissionAndZones import setupTransmissionAndZones, defineTransmissionRegions
-#from resultsanalysis_function_automated import results_summary
-#from resultsanalysis_function_automated_mulStep import results_summary_mul
 import pickle
 
 # SET OPTIONS
@@ -66,102 +55,80 @@ lbToShortTon = 2000
 # ###############################################################################
 def setKeyParameters():
     # ### STUDY AREA AND METEOROLOGICAL-DEPENDENT DATA
-    metYear = 2012  # year of meteorological data used for demand and renewables
-    interconn = 'EI'  # which interconnection to run - ERCOT, WECC, EI
-    balAuths = 'full'  # full: run for all BAs in interconn. TODO: add selection of a subset of BAs.
-    electrifiedDemand = True  # whether to import electrified demand futures from NREL's EFS
-    elecDemandScen = 'REFERENCE'  # 'REFERENCE','HIGH','MEDIUM' (ref is lower than med)
-    reSourceMERRA = True  # == True: use MERRA as renewable data source, == False: use NSDB and Wind Toolkit
+    metYear = 2012                                              # year of meteorological data used for demand and renewables
+    interconn = 'ERCOT'                                            # which interconnection to run - ERCOT, WECC, EI
+    balAuths = 'full'                                           # full: run for all BAs in interconn. TODO: add selection of a subset of BAs.
+    electrifiedDemand = True                                    # whether to import electrified demand futures from NREL's EFS
+    elecDemandScen = 'REFERENCE'                                # 'REFERENCE','HIGH','MEDIUM' (ref is lower than med)
+    reSourceMERRA = True                                        # == True: use MERRA as renewable data source, == False: use NSDB and Wind Toolkit
     fixDays = True
 
-    annualDemandGrowth = 0  # fraction demand growth per year - ignored if use EFS data (electrifieDemand=True)
-    metYear = 2012 if electrifiedDemand else metYear  # EFS data is for 2012; ensure met year is 2012
-    reDownFactor = 80  # downscaling factor for W&S new CFs; 1 means full resolution, 2 means half resolution, 3 is 1/3 resolution, etc
+    annualDemandGrowth = 0                                      # fraction demand growth per year - ignored if use EFS data (electrifieDemand=True)
+    metYear = 2012 if electrifiedDemand else metYear            # EFS data is for 2012; ensure met year is 2012
+    reDownFactor = 200                                           # downscaling factor for W&S new CFs; 1 means full resolution, 2 means half resolution, 3 is 1/3 resolution, etc
 
     # ### BUILD SCENARIO
-    buildLimitsCase = 1# 1 = reference case,
-    # 2 = limited nuclear,
-    # 3 = limited CCS and nuclear,
-    # 4 = limited hydrogen storage,
-    # 5 = limited transmission
-
-    # ### PLANNING SYSTEM SCENARIO
-    emissionSystem = 'Negative'  # "NetZero" = net zero,
-    # "Negative" = negative emission system
-
-    # ### NEGATIVE EMISSION SCENARIO
-    planNESystem = 2050  # Year that negative emission system is planned
+    buildLimitsCase = 1                                         # 1 = reference case,
+                                                                # 2 = limited nuclear,
+                                                                # 3 = limited CCS and nuclear,
+                                                                # 4 = limited hydrogen storage,
+                                                                # 5 = limited transmission
 
     # ### RUNNING ON SC OR LOCAL
-    runOnSC = False  # whether running on supercomputer
-
-    # ### RUNNING MULTIPLE 10 YEAR STEPS or JUST 1 STEP
-    mulStep = False  # True: 10 year steps
+    runOnSC = False                                             # whether running on supercomputer
 
     # ### CO2 EMISSION CAPS AND DACS TREATMENT
     if interconn == 'ERCOT':
-        co2Ems2020 = 130594820  # TONS. Initial emission for ERCOT: 130594820.
+        co2Ems2020 = 130594820                                  # TONS. Initial emission for ERCOT: 130594820.
     elif interconn == 'EI':
         co2Ems2020 = 1274060000
 
-    if emissionSystem == 'NetZero':
-        co2EmsCapInFinalYear = 0            # .9*co2Ems2020    # cap on co2 emissions in final year of CE
-    elif emissionSystem == 'Negative':
-        if interconn == 'ERCOT':
-            co2EmsCapInFinalYear = -90 * 1e6
-        elif interconn == 'EI':
-            co2EmsCapInFinalYear = -724.6662647 * 1e6
+    co2EmsCapInFinalYear = 0                                    # cap on co2 emissions in final year of CE
 
-    yearIncDACS = 2020  # year to include DACS - set beyond end period if don't want DACS
+    yearIncDACS = 2060                                          # year to include DACS - set beyond end period if don't want DACS
 
     # ### CE AND UCED/ED OPTIONS
-    compressFleet = True  # whether to compress fleet
-    tzAnalysis = {'ERCOT': 'CST', 'EI': 'EST', 'WECC': 'PST'}[interconn]  # timezone for analysis
-    fuelPrices = importFuelPrices('Reference case')  # import fuel price time series
+    compressFleet = True                                        # whether to compress fleet
+    tzAnalysis = {'ERCOT': 'CST', 'EI': 'EST', 'WECC': 'PST'}[interconn]                # timezone for analysis
+    fuelPrices = importFuelPrices('Reference case')             # import fuel price time series
 
     # ### CE OPTIONS
-    runCE, ceOps = True, 'ED'  # ops are 'ED' or 'UC' (econ disp or unit comm constraints)
-    numBlocks, daysPerBlock, daysPerPeak = 4, 2, 3  # num rep time blocks, days per rep block, and days per peak block in CE
+    runCE, ceOps = True, 'ED'                                   # ops are 'ED' or 'UC' (econ disp or unit comm constraints)
+    numBlocks, daysPerBlock, daysPerPeak = 4, 2, 3              # num rep time blocks, days per rep block, and days per peak block in CE
     fullYearCE = True if (numBlocks == 1 and daysPerBlock > 300) else False  # whether running full year in CE
-    if planNESystem < 2050:
-        startYear, endYear, yearStepCE = 2020, 2051, 10  # start & end year & time steps between CE runs
-    elif planNESystem == 2050:
-        startYear, endYear, yearStepCE = 2020, 2061, 10
+    startYear, endYear, yearStepCE = 2020, 2051, 30
 
-    if emissionSystem == 'NetZero':
-        startYear, endYear, yearStepCE = 2020, 2051, 30
-
-    greenField = True  # whether to run greenField (set to True) or brownfield (False)
-    includeRes = False  # whether to include reserves in CE & dispatch models (if False, multiplies reserve timeseries by 0)
-    stoInCE, seasStoInCE = True, True  # whether to allow new storage,new seasonal storage in CE model
-    retireByAge = True  # whether to retire by age or not
-    planningReserveMargin = 0.1375  # fraction of peak demand; ERCOT targeted planning margin
-    retirementCFCutoff = .3  # retire units w/ CF lower than given value
-    discountRate = 0.07  # fraction
-    ptEligRetCF = ['Coal Steam']  # which plant types retire based on capacity factor (economics)
-    incITC, incNuc = False, True  # include Investment Tax Credit or not; include nuclear as new investment option or not
+    greenField = False                                          # whether to run greenField (set to True) or brownfield (False)
+    includeRes = False                                          # whether to include reserves in CE & dispatch models (if False, multiplies reserve timeseries by 0)
+    stoInCE, seasStoInCE = True, True                           # whether to allow new storage, new seasonal storage in CE model
+    retireByAge = True                                          # whether to retire by age or not
+    planningReserveMargin = 0.1375                              # fraction of peak demand; ERCOT targeted planning margin
+    retirementCFCutoff = .3                                     # retire units w/ CF lower than given value
+    discountRate = 0.07                                         # fraction
+    ptEligRetCF = ['Coal Steam']                                # which plant types retire based on capacity factor (economics)
+    incITC, incNuc = False, True                                # include Investment Tax Credit or not; include nuclear as new investment option or not
 
     # ### ED/UCED OPTIONS
-    runFirstYear = False  # whether to run first year of dispatch
-    ucOrED = 'None'  # STRING that is either: ED, UC, None
-    useCO2Price = False  # whether to calc & inc CO2 price in operations run
+    runFirstYear = False                                        # whether to run first year of dispatch
+    ucOrED = 'None'                                             # STRING that is either: ED, UC, None
+    useCO2Price = False                                         # whether to calc & inc CO2 price in operations run
 
     # ### STORAGE OPTIONS
-    stoMkts = 'energyAndRes'  # energy,res,energyAndRes - whether storage participates in energy, reserve, or energy and reserve markets
+    stoMkts = 'energyAndRes'                                    # energy,res,energyAndRes - whether storage participates in energy, reserve, or energy and reserve markets
     stoFTLabels = ['Energy Storage']
-    stoPTLabels = ['Energy Storage', 'Hydrogen', 'Battery Storage', 'Flywheels', 'Batteries']  # potential plant type labels
+    stoPTLabels = ['Energy Storage', 'Hydrogen', 'Battery Storage', 'Flywheels', 'Batteries']   # potential plant type labels
     stoDuration = {'Energy Storage': 'st', 'Hydrogen': 'lt', 'Battery Storage': 'st', 'Flywheels': 'st', 'Batteries': 'st'}  # mapping plant types to short-term (st) or long-term (lt) storage
-    initSOCFraction = {pt: {'st': .1, 'lt': .05}[dur] for pt, dur in stoDuration.items()}  # get initial SOC fraction per st or lt storage
+    initSOCFraction = {pt: {'st': .1, 'lt': .05}[dur] for pt, dur in stoDuration.items()}       # get initial SOC fraction per st or lt storage
     stoMinSOC = 0  # min SOC
 
     # ### GENERIC DEMAND FLEXIBILITY PARAMETERS
-    demandShifter = 0  # Percentage of hourly demand that can be shifted
-    demandShiftingBlock = 4  # moving shifting demand window (hours)
+    demandShifter = 0                                           # Percentage of hourly demand that can be shifted
+    demandShiftingBlock = 4                                     # moving shifting demand window (hours)
 
     # ### LIMITS ON TECHNOLOGY DEPLOYMENT
     maxCapPerTech = {'Wind': 2000 * reDownFactor, 'Solar': 17000 * reDownFactor, 'Thermal': 999999, 'Combined Cycle': 999999,
                      'Storage': 999999, 'Dac': -9999999, 'CCS': 999999, 'Nuclear': 999999, 'Battery Storage': 999999,
-                     'Hydrogen': 999999, 'Transmission': 1000000000}  # max added MW per CE run (W&S by cell)
+                     'Hydrogen': 999999, 'Transmission': 1000000000}                                    # max added MW per CE run (W&S by cell)
     if buildLimitsCase == 2:
         maxCapPerTech['Nuclear'] = 0
     elif buildLimitsCase == 3:
@@ -177,10 +144,10 @@ def setKeyParameters():
 
     return (buildLimitsCase, greenField, includeRes, useCO2Price, runCE, ceOps, stoInCE, seasStoInCE, ucOrED, numBlocks,
             daysPerBlock, daysPerPeak, fullYearCE, incNuc, compressFleet, fuelPrices, co2EmsCapInFinalYear, co2Ems2020,
-            planNESystem, emissionSystem, startYear, endYear, yearStepCE, retirementCFCutoff, retireByAge, planningReserveMargin,
+            startYear, endYear, yearStepCE, retirementCFCutoff, retireByAge, planningReserveMargin,
             discountRate, annualDemandGrowth, stoMkts, stoFTLabels, stoPTLabels, initSOCFraction, tzAnalysis, maxCapPerTech,
             runCE, runFirstYear, metYear, ptEligRetCF, incITC, stoMinSOC, reDownFactor, demandShifter, demandShiftingBlock,
-            runOnSC, yearIncDACS, electrifiedDemand, elecDemandScen, interconn, balAuths, mulStep, reSourceMERRA, fixDays)
+            runOnSC, yearIncDACS, electrifiedDemand, elecDemandScen, interconn, balAuths, reSourceMERRA, fixDays)
 
 
 def importFuelPrices(fuelPriceScenario):
@@ -225,25 +192,21 @@ def defineReserveParameters(stoMkts, stoFTLabels):
 # ###############################################################################
 # ##### MASTER FUNCTION #########################################################
 # ###############################################################################
-def masterFunction():
+def masterFunction(rStage):
     # Import key parameters
     (buildLimitsCase, greenField, includeRes, useCO2Price, runCE, ceOps, stoInCE, seasStoInCE, ucOrED, numBlocks,
      daysPerBlock, daysPerPeak, fullYearCE, incNuc, compressFleet, fuelPrices, co2EmsCapInFinalYear, co2Ems2020,
-     planNESystem, emissionSystem, startYear, endYear, yearStepCE, retirementCFCutoff, retireByAge, planningReserveMargin,
+     startYear, endYear, yearStepCE, retirementCFCutoff, retireByAge, planningReserveMargin,
      discountRate, annualDemandGrowth, stoMkts, stoFTLabels, stoPTLabels, initSOCFraction, tzAnalysis, maxCapPerTech,
      runCE, runFirstYear, metYear, ptEligRetCF, incITC, stoMinSOC, reDownFactor, demandShifter, demandShiftingBlock,
-     runOnSC, yearIncDACS, electrifiedDemand, elecDemandScen, interconn, balAuths, mulStep, reSourceMERRA, fixDays) = setKeyParameters()
+     runOnSC, yearIncDACS, electrifiedDemand, elecDemandScen, interconn, balAuths, reSourceMERRA, fixDays) = setKeyParameters()
 
     (regLoadFrac, contLoadFrac, regErrorPercentile, flexErrorPercentile, regElig, contFlexInelig, regCostFrac,
      rrToRegTime, rrToFlexTime, rrToContTime) = defineReserveParameters(stoMkts, stoFTLabels)
 
     # Create results directory
     buildScen = {1: 'reference', 2: 'lNuclear', 3: 'lNuclearCCS', 4: 'lH2', 5: 'lTrans'}[buildLimitsCase]
-    if emissionSystem == 'Negative':
-        resultsDirAll = 'Results_' + interconn + '_' + emissionSystem + str(int(co2EmsCapInFinalYear / 1e6)) + '_' + 'DACS' + str(yearIncDACS) + 'NEin' + str(
-            planNESystem) + '_' + buildScen + '_' + str(electrifiedDemand) + elecDemandScen
-    elif emissionSystem == 'NetZero':
-        resultsDirAll = 'Results_' + interconn + '_' + emissionSystem + '_' + 'DACS' + str(yearIncDACS) + '_' + buildScen + '_' + str(electrifiedDemand) + elecDemandScen
+    resultsDirAll = 'Results_' + interconn + '_' + buildScen + '_' + str(electrifiedDemand) + elecDemandScen
 
     if not os.path.exists(resultsDirAll): os.makedirs(resultsDirAll)
 
@@ -255,46 +218,16 @@ def masterFunction():
                                                                            interconn, balAuths, contFlexInelig, stoFTLabels, stoPTLabels)
 
     # Run CE and/or ED/UCED
+
+
     for currYear in range(startYear, endYear, yearStepCE):
         # Set CO2 cap and demand for year
-        if currYear <= 2050:
-            currCo2Cap = co2Ems2020 + (co2EmsCapInFinalYear - co2Ems2020) / ((endYear - 1) - startYear) * (currYear - startYear)
-            currCo2CapZero = co2Ems2020 + (0 - co2Ems2020) / (2050 - startYear) * (currYear - startYear)
-        elif currYear > 2050:
-            currCo2Cap = co2Ems2020 + (co2EmsCapInFinalYear - co2Ems2020) / (2050 - startYear) * (2050 - startYear)
-
-        Co2CapZero2030 = co2Ems2020 + (0 - co2Ems2020) / (((endYear - 1) - 1) - startYear) * (2030 - startYear)
-        Co2Cap2040planNE2030 = Co2CapZero2030 - (Co2CapZero2030 - co2EmsCapInFinalYear) / 2
-
-        if emissionSystem == 'Negative':
-            if planNESystem == 2030:
-                if currYear < 2040:
-                    currCo2Cap = currCo2CapZero
-                elif currYear == 2040:
-                    currCo2Cap = Co2Cap2040planNE2030
-            elif planNESystem == 2040:
-                if currYear < 2050:
-                    currCo2Cap = currCo2CapZero
-            elif planNESystem == 2050:
-                if currYear <= 2050:
-                    currCo2Cap = currCo2CapZero
-
-        if not mulStep:
-            if emissionSystem == 'Negative':
-                if planNESystem == 2020 or planNESystem == 2050:
-                    if currYear == 2030 or currYear == 2040:
-                        continue
-                elif planNESystem == 2030:
-                    if currYear == 2040:
-                        continue
-                elif planNESystem == 2040:
-                    if currYear == 2030:
-                        continue
+        currCo2Cap = co2Ems2020 + (co2EmsCapInFinalYear - co2Ems2020) / ((endYear - 1) - startYear) * (currYear - startYear)
 
         print('Entering year ', currYear, ' with CO2 cap (million tons):', round(currCo2Cap / 1e6))
 
         # Create results directory
-        resultsDir = os.path.join(resultsDirAll, str(currYear) + 'CO2Cap' + str(int(co2EmsCapInFinalYear / 1e6)))
+        resultsDir = os.path.join(resultsDirAll, rStage, str(currYear) + 'CO2Cap' + str(int(co2EmsCapInFinalYear / 1e6)))
         if not os.path.exists(resultsDir): os.makedirs(resultsDir)
 
         # Scale up demand profile if needed
@@ -303,24 +236,13 @@ def masterFunction():
 
         # Run CE
         if currYear > startYear and runCE:
-            print('Starting CE')
+            if rStage == 'CE':
+                print('Starting CE')
+            elif rStage == 'MGA':
+                print('Starting MGA')
             # Initialize results & inputs
-            if mulStep:
-                if currYear == startYear + yearStepCE:
-                    priorCEModel, priorHoursCE, genFleetPriorCE = None, None, None,
-            else:
-                if planNESystem == 2030:
-                    if currYear == 2030:
-                        if currYear == 2030:
-                            priorCEModel, priorHoursCE, genFleetPriorCE = None, None, None,
-
-                if planNESystem == 2040:
-                    if currYear == 2040:
-                        if currYear == 2040:
-                            priorCEModel, priorHoursCE, genFleetPriorCE = None, None, None,
-
-                elif planNESystem == 2020 or planNESystem == 2050 or emissionSystem == 'NetZero':
-                    priorCEModel, priorHoursCE, genFleetPriorCE = None, None, None,
+            if currYear == startYear + yearStepCE:
+                priorCEModel, priorHoursCE, genFleetPriorCE = None, None, None,
 
             (genFleet, genFleetPriorCE,
              priorCEModel, priorHoursCE) = runCapacityExpansion(genFleet, demandProfile, startYear, currYear, planningReserveMargin,
@@ -331,8 +253,8 @@ def masterFunction():
                                                                 genFleetPriorCE, priorCEModel, priorHoursCE, incITC, metYear, stoInCE, seasStoInCE,
                                                                 ceOps, stoMkts, initSOCFraction, includeRes, reDownFactor, incNuc, demandShifter,
                                                                 demandShiftingBlock, runOnSC, interconn, yearIncDACS, transRegions, pRegionShapes,
-                                                                lineLimits, lineDists, lineCosts, contFlexInelig, buildLimitsCase, emissionSystem,
-                                                                planNESystem, co2EmsCapInFinalYear, electrifiedDemand, elecDemandScen, reSourceMERRA, fixDays)
+                                                                lineLimits, lineDists, lineCosts, contFlexInelig, buildLimitsCase, co2EmsCapInFinalYear,
+                                                                electrifiedDemand, elecDemandScen, reSourceMERRA, fixDays, rStage)
 
         # Run dispatch
         if (ucOrED != 'None') and ((currYear == startYear and runFirstYear) or (currYear > startYear)):
@@ -341,13 +263,6 @@ def masterFunction():
                         tzAnalysis, resultsDir, stoMkts, metYear, regLoadFrac, contLoadFrac, interconn, regErrorPercentile, reSourceMERRA,
                         flexErrorPercentile, includeRes, rrToRegTime, rrToFlexTime, rrToContTime, regCostFrac,
                         ucOrED, initSOCFraction, includeRes)
-
-    #if mulStep:
-    #    results_summary_mul(buildLimitsCase, emissionSystem, planNESystem, co2EmsCapInFinalYear,
-    #                        yearIncDACS, electrifiedDemand, elecDemandScen, interconn)
-    #else:
-    #    results_summary(buildLimitsCase, emissionSystem, planNESystem, co2EmsCapInFinalYear,
-    #                    yearIncDACS, electrifiedDemand, elecDemandScen, interconn)
 
 
 # ###############################################################################
@@ -400,11 +315,17 @@ def runCapacityExpansion(genFleet, demand, startYear, currYear, planningReserveM
                          regElig, regCostFrac, ptEligRetCF, genFleetPriorCE, priorCEModel, priorHoursCE, incITC, metYear, stoInCE, seasStoInCE,
                          ceOps, stoMkts, initSOCFraction, includeRes, reDownFactor, incNuc, demandShifter, demandShiftingBlock, runOnSC,
                          interconn, yearIncDACS, transRegions, pRegionShapes, lineLimits, lineDists, lineCosts, contFlexInelig,
-                         buildLimitsCase, emissionSystem, planNESystem, co2EmsCapInFinalYear, electrifiedDemand, elecDemandScen, reSourceMERRA, fixDays):
+                         buildLimitsCase, co2EmsCapInFinalYear, electrifiedDemand, elecDemandScen, reSourceMERRA, fixDays, rStage):
+
     # Create results directory
-    resultsDir = os.path.join(resultsDirOrig, 'CE')
+    resultsDir = os.path.join(resultsDirOrig)
+
     if not os.path.exists(resultsDir): os.makedirs(resultsDir)
-    print('Entering CE loop for year ' + str(currYear))
+
+    if rStage == 'CE':
+        print('Entering CE loop for year ' + str(currYear))
+    elif rStage == 'MGA':
+        print('Entering MGA loop for year ' + str(currYear))
 
     # Update new technology and fuel price data
     write2dListToCSV([[currCo2Cap]], os.path.join(resultsDir, 'co2CapCE' + str(currYear) + '.csv'))
@@ -438,125 +359,6 @@ def runCapacityExpansion(genFleet, demand, startYear, currYear, planningReserveM
      lastRepBlockNames, specialBlocksPrior) = getHoursForCE(demand, netDemand, windGenRegion, solarGenRegion,
                                                             daysPerBlock, daysPerPeak, fullYearCE, currYear,
                                                             resultsDir, numBlocks, metYear, planningReserveMargin)
-
-    if fixDays:
-        hoursForCE = pd.read_pickle('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\hoursForCE.pkl')
-
-        with open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\planningReserve.pkl', 'rb') as pickle_file:
-            planningReserve = pickle.load(pickle_file)
-        with open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\blockWeights.pkl', 'rb') as pickle_file:
-            blockWeights = pickle.load(pickle_file)
-        with open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\socScalars.pkl', 'rb') as pickle_file:
-            socScalars = pickle.load(pickle_file)
-        with open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\peakDemandHour.pkl', 'rb') as pickle_file:
-            peakDemandHour = pickle.load(pickle_file)
-        with open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\blockNamesChronoList.pkl', 'rb') as pickle_file:
-            blockNamesChronoList = pickle.load(pickle_file)
-        with open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\lastRepBlockNames.pkl', 'rb') as pickle_file:
-            lastRepBlockNames = pickle.load(pickle_file)
-        with open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\specialBlocksPrior.pkl', 'rb') as pickle_file:
-            specialBlocksPrior = pickle.load(pickle_file)
-
-        #if planNESystem == 2020 and emissionSystem == 'Negative':
-        #    hoursForCE.to_pickle('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\hoursForCE.pkl')
-
-        #    f = open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\planningReserve.pkl', 'wb')
-        #    pickle.dump(planningReserve, f)
-        #    f.close()
-
-        #    f = open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\blockWeights.pkl', 'wb')
-        #    pickle.dump(blockWeights, f)
-        #    f.close()
-
-        #    f = open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\socScalars.pkl', 'wb')
-        #    pickle.dump(socScalars, f)
-        #    f.close()
-
-        #    f = open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\peakDemandHour.pkl', 'wb')
-        #    pickle.dump(peakDemandHour, f)
-        #    f.close()
-
-        #    f = open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\blockNamesChronoList.pkl', 'wb')
-        #    pickle.dump(blockNamesChronoList, f)
-        #    f.close()
-
-        #    f = open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\lastRepBlockNames.pkl', 'wb')
-        #    pickle.dump(lastRepBlockNames, f)
-        #    f.close()
-
-        #    f = open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\specialBlocksPrior.pkl', 'wb')
-        #    pickle.dump(specialBlocksPrior, f)
-        #    f.close()
-
-        #if planNESystem == 2050 and emissionSystem == 'Negative':
-        #    if currYear > 2050:
-        #        hoursForCE = pd.read_pickle('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\hoursForCE.pkl')
-
-        #        with open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\planningReserve.pkl', 'rb') as pickle_file:
-        #            planningReserve = pickle.load(pickle_file)
-        #        with open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\blockWeights.pkl', 'rb') as pickle_file:
-        #            blockWeights = pickle.load(pickle_file)
-        #        with open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\socScalars.pkl', 'rb') as pickle_file:
-        #            socScalars = pickle.load(pickle_file)
-        #        with open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\peakDemandHour.pkl', 'rb') as pickle_file:
-        #            peakDemandHour = pickle.load(pickle_file)
-        #        with open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\blockNamesChronoList.pkl', 'rb') as pickle_file:
-        #            blockNamesChronoList = pickle.load(pickle_file)
-        #        with open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\lastRepBlockNames.pkl', 'rb') as pickle_file:
-        #            lastRepBlockNames = pickle.load(pickle_file)
-        #        with open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days\\'+interconn+'\\specialBlocksPrior.pkl', 'rb') as pickle_file:
-        #            specialBlocksPrior = pickle.load(pickle_file)
-
-    #if fixDays:
-    #    if planNESystem == 2020 and emissionSystem == 'Negative' and interconn == 'ERCOT':
-    #        hoursForCE.to_pickle('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days ERCOT\\hoursForCE.pkl')
-
-    #        f = open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days ERCOT\\planningReserve.pkl', 'wb')
-    #        pickle.dump(planningReserve, f)
-    #        f.close()
-
-    #        f = open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days ERCOT\\blockWeights.pkl', 'wb')
-    #        pickle.dump(blockWeights, f)
-    #        f.close()
-
-    #        f = open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days ERCOT\\socScalars.pkl', 'wb')
-    #        pickle.dump(socScalars, f)
-    #        f.close()
-
-    #        f = open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days ERCOT\\peakDemandHour.pkl', 'wb')
-    #        pickle.dump(peakDemandHour, f)
-    #        f.close()
-
-    #        f = open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days ERCOT\\blockNamesChronoList.pkl', 'wb')
-    #        pickle.dump(blockNamesChronoList, f)
-    #        f.close()
-
-    #        f = open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days ERCOT\\lastRepBlockNames.pkl', 'wb')
-    #        pickle.dump(lastRepBlockNames, f)
-    #        f.close()
-
-    #        f = open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days ERCOT\\specialBlocksPrior.pkl', 'wb')
-    #        pickle.dump(specialBlocksPrior, f)
-    #        f.close()
-
-    #    if planNESystem == 2050 and emissionSystem == 'Negative' and interconn == 'EI':
-    #        if currYear > 2050:
-    #            hoursForCE = pd.read_pickle('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days ERCOT\\hoursForCE.pkl')
-
-    #            with open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days ERCOT\\planningReserve.pkl', 'rb') as pickle_file:
-    #                planningReserve = pickle.load(pickle_file)
-    #            with open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days ERCOT\\blockWeights.pkl', 'rb') as pickle_file:
-    #                blockWeights = pickle.load(pickle_file)
-    #            with open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days ERCOT\\socScalars.pkl', 'rb') as pickle_file:
-    #                socScalars = pickle.load(pickle_file)
-    #            with open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days ERCOT\\peakDemandHour.pkl', 'rb') as pickle_file:
-    #                peakDemandHour = pickle.load(pickle_file)
-    #            with open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days ERCOT\\blockNamesChronoList.pkl', 'rb') as pickle_file:
-    #                blockNamesChronoList = pickle.load(pickle_file)
-    #            with open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days ERCOT\\lastRepBlockNames.pkl', 'rb') as pickle_file:
-    #                lastRepBlockNames = pickle.load(pickle_file)
-    #            with open('C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\NETs\\Model\\EI-CE\\Python\\Data\\Fixed Days ERCOT\\specialBlocksPrior.pkl', 'rb') as pickle_file:
-    #                specialBlocksPrior = pickle.load(pickle_file)
 
     # Get CFs for new wind and solar sites and add wind & solar sites to newTechs
     newCfs = getNewRenewableCFs(genFleet, tzAnalysis, metYear, currYear, reDownFactor, pRegionShapes, reSourceMERRA)
@@ -598,7 +400,16 @@ def runCapacityExpansion(genFleet, demand, startYear, currYear, planningReserveM
     write2dListToCSV([[k, v] for k, v in socScalars.items()], os.path.join(resultsDir, 'socScalars' + str(currYear) + '.csv'))
 
     # ######### RUN CAPACITY EXPANSION
-    print('Running CE for ' + str(currYear))
+    # If at MGA stage, return objective function value from initial least cost solution then set upper bound
+    if rStage == 'MGA':
+        fVal = 14
+        zAnnualCost_Ub = 0.1*fVal + fVal
+
+    if rStage == 'CE':
+        print('Running CE for ' + str(currYear))
+    elif rStage == 'MGA':
+        print('Running MGA for ' + str(currYear))
+
     ws, db, gamsFileDir = createGAMSWorkspaceAndDatabase(runOnSC)
     writeTimeDependentConstraints(blockNamesChronoList, stoInCE, seasStoInCE, gamsFileDir, ceOps, lastRepBlockNames, specialBlocksPrior)
     writeBuildVariable(ceOps, gamsFileDir)
@@ -732,12 +543,12 @@ def runDispatch(genFleet, hourlyDemand, currYear, demandShifter, demandShiftingB
 def createGAMSWorkspaceAndDatabase(runOnSC):
     # currDir = os.getcwd()
     if runOnSC:
-        gamsFileDir = '/home/anph/projects/NETs/EI-CE-NE2050/GAMS'
+        gamsFileDir = '/home/anph/projects/Power-H2_MGA/Model/GAMS'
         gamsSysDir = '/home/anph/gams_35_1'
     else:
         # gamsFileDir = 'C:\\Users\\mtcraig\\Desktop\\Research\\Models\\CEGit\\GAMS'
         # gamsSysDir = 'C:\\GAMS\\win64\\31.1'
-        gamsFileDir = r"C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS"
+        gamsFileDir = r"C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS"
         gamsSysDir = r"C:\GAMS\win64\30.2"
     ws = GamsWorkspace(working_directory=gamsFileDir, system_directory=gamsSysDir)
     db = ws.add_database()
@@ -840,17 +651,8 @@ def ceTimeDependentConstraints(db, hoursForCE, blockWeights, socScalars, ceOps, 
 
 
 ################################################################################
-# def checkfunction(ceModel,hoursForCE,gens,resultsDir,modelName,year,genFleetForCE,newTechsCE):
-#  sysResults = saveSystemResults(ceModel,hoursForCE)
-#  resultsCEgen = saveGeneratorResults(ceModel,gens,hoursForCE,resultsDir,modelName,year,newTechs=False)
-# result = saveCapacExpOperationalData(ceModel,genFleetForCE,newTechsCE,hoursForCE,resultsDir,modelName,year)
-#    resultsCEgen.to_csv(r'C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\resultsCEgen.txt')
-#   sysResults.to_csv(r'C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\sysResults.txt')
-#   result.to_csv(r'C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\sysResults.txt')
-
 ################################################################################
 ################################################################################
 ################################################################################
 
-masterFunction()
 
