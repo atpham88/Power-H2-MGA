@@ -4230,9 +4230,6 @@ PlaneRownr=-1
 [RP:STORAGEEDMODULE]
 1=
 
-[RP:CEBUILDVARIABLE]
-1=
-
 [GDXDISP: pLinesource Par 1]
 PlaneDim=0
 RowDim=1
@@ -4593,16 +4590,46 @@ Order=
 Decim=7
 PlaneRownr=-1
 
-[RP:MGAWITHED]
-1=
-
-[RP:CESHAREDFEATURES]
+[RP:EDANDUCSHAREDFEATURES]
 1=
 
 [RP:CEWITHED]
 1=
 
-[RP:EDANDUCSHAREDFEATURES]
+[RP:CEBUILDVARIABLE]
+1=
+
+[RP:CESHAREDFEATURES]
+1=
+
+[GDXDISP: vFlexreserve Var 2]
+PlaneDim=0
+RowDim=2
+Squeeze=1
+SqTrail0=0
+Order=1,2,3
+Decim=7
+PlaneRownr=-1
+
+[GDXDISP: vInitSOCblockpeaktotal2htech Var 1]
+PlaneDim=0
+RowDim=1
+Squeeze=1
+SqTrail0=0
+Order=1,2
+Decim=7
+PlaneRownr=-1
+
+[GDXDISP: vInitSOCblockpeaktotal2h Var 1]
+PlaneDim=0
+RowDim=1
+Squeeze=1
+SqTrail0=0
+Order=1,2
+Decim=7
+PlaneRownr=-1
+
+[RP:MGAWITHED]
 1=
 
 [MRUFILES]
@@ -4618,11 +4645,13 @@ PlaneRownr=-1
 
 [OPENWINDOW_1]
 FILE0=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\_gams_py_gdb0.gdx
-FILE1=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\CESharedFeatures.gms
-FILE2=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\CEWithED.gms
-FILE3=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\EDAndUCSharedFeatures.gms
-FILE4=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\MGAWithED.gms
-FILE5=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\MGAWithED.gms
+FILE1=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\_gams_py_gdb1.gdx
+FILE2=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\CEBuildVariable.gms
+FILE3=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\CESharedFeatures.gms
+FILE4=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\CEWithED.gms
+FILE5=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\EDAndUCSharedFeatures.gms
+FILE6=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\MGAWithED.gms
+FILE7=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\CEBuildVariable.gms
 MAXIM=1
 TOP=0
 LEFT=4

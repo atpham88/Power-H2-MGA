@@ -24,8 +24,8 @@ Parameters
                 ;
 
 Variables
-*Total cost variables
-         vZ                              obj func [sum of weighted non-zero capacity]
+*Total sum of capacity variables
+         vZannual                              obj func [sum of weighted non-zero capacity]
                 ;
 
 Equations
@@ -53,7 +53,7 @@ Equations
 
 ******************CALCULATE COSTS (OBJ FUNC)**********
 *Objective: minimize fixed + variable costs
-objfunc..                vZ =e= vFixedcostannual + vVarcostannual;
+objfunc..                vZannual =e= vFixedcostannual + vVarcostannual;
 ******************************************************
 
 ******************INITIAL OBJECTIVE FUNCTION LIMIT**********
@@ -92,7 +92,7 @@ enforceco2emissionscap.. vCO2emsannual =l= pCO2emcap;
 ************************************************************
 
 Model mgaWithED includes all equations /all/;
-solve mgaWithED using lp minimizing vZ;
+solve mgaWithED using lp minimizing vZannual;
 
 pModelstat = mgaWithED.Modelstat;
 pSolvestat = mgaWithED.solvestat;

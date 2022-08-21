@@ -75,7 +75,7 @@ def main():
                                        useCO2Price, maxCapPerTech, reDownFactor, annualDemandGrowth)
         elif rStage == 'MGA':
             fval = pd.read_csv(projectPath + resultsCE + "\\vZannualCE" + str(endYear-1) + ".csv", header=None)
-            objLimit = fval.iloc[0,0]*1.1*1000
+            objLimit = fval.iloc[0,0]*1.1
             resultsMGA = masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDemand, elecDemandScen, reSourceMERRA, fixDays,
                                         buildLimitsCase, runOnSC, co2EmsCapInFinalYear, yearIncDACS, compressFleet, runCE, ceOps, numBlocks, daysPerBlock,
                                         daysPerPeak, startYear, endYear, yearStepCE, greenField, includeRes, stoInCE, seasStoInCE, retireByAge,

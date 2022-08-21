@@ -207,7 +207,7 @@ def masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDe
         # Run dispatch
         if (ucOrED != 'None') and ((currYear == startYear and runFirstYear) or (currYear > startYear)):
             print('Starting dispatch')
-            runDispatch(genFleet, demandProfile, currYear, demandShifter, demandShiftingBlock, fuelPrices, currCo2Cap, useCO2Price,
+            runDispatch(genFleet, objLimit, demandProfile, currYear, demandShifter, demandShiftingBlock, fuelPrices, currCo2Cap, useCO2Price,
                         tzAnalysis, resultsDir, stoMkts, metYear, regLoadFrac, contLoadFrac, interconn, regErrorPercentile, reSourceMERRA,
                         flexErrorPercentile, includeRes, rrToRegTime, rrToFlexTime, rrToContTime, regCostFrac,
                         ucOrED, initSOCFraction, includeRes)
@@ -393,7 +393,7 @@ def runCapacityExpansion(genFleet, demand, startYear, currYear, planningReserveM
 # ###############################################################################
 # ###### RUN DISPATCH ###########################################################
 # ###############################################################################
-def runDispatch(genFleet, hourlyDemand, currYear, demandShifter, demandShiftingBlock, runOnSC, fuelPrices, currCo2Cap, useCO2Price,
+def runDispatch(genFleet, objLimit, hourlyDemand, currYear, demandShifter, demandShiftingBlock, runOnSC, fuelPrices, currCo2Cap, useCO2Price,
                 tzAnalysis, resultsDir, stoMkts, metYear, regLoadFrac, contLoadFrac, interconn, regErrorPercentile, reSourceMERRA,
                 flexErrorPercentile, rrToRegTime, rrToFlexTime, rrToContTime, regCostFrac, ucOrED, initSOCFraction, includeRes,
                 firstDay=0, lastDay=364, daysOpt=364, daysLA=1):

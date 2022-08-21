@@ -25,7 +25,7 @@ Parameters
 
 Variables
 *Total sum of capacity variables
-         vZannual                              obj func [sum of weighted non-zero capacity]
+         vZannual                        obj func [sum of weighted capacity variables]
                 ;
 
 Equations
@@ -52,8 +52,8 @@ Equations
                  ;
 
 ******************CALCULATE COSTS (OBJ FUNC)**********
-*Objective: minimize fixed + variable costs
-objfunc..                vZannual =e= vFixedcostannual + vVarcostannual;
+*Objective: minimize sum of capacity variables
+objfunc..                vZannual =e= sum(nonstoragetech,vN(nonstoragetech))+ sum(storagetech,vPowBuiltSto(storagetech)+vEneBuiltSto(storagetech));
 ******************************************************
 
 ******************INITIAL OBJECTIVE FUNCTION LIMIT**********
