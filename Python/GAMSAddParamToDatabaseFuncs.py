@@ -11,6 +11,7 @@ from WriteTimeDependentConstraints import createInitSOCName
 ################################################################################
 ##################### CE & UC PARAMETERS #######################################
 ################################################################################
+
 ##### ADD HOURLY DEMAND PARAMETERS (GWh)
 def addDemandParam(db, demand, hourSet, zoneSet, demandShifter, demandShiftingBlock, mwToGW):
     add2dParam(db, convert2DTimeseriesDfToDict(demand, 1 / mwToGW), zoneSet, hourSet, 'pDemand')
@@ -353,6 +354,9 @@ def addCostNonservedEnergy(db, cnse):
 def addCo2Price(db, co2Price):
     add0dParam(db, 'pCO2Cost', co2Price / 1000)
 
+##### ADD LIMIT FOR LEAST-COST OBJECTIVE (Million $)
+def addObjLimit(db, objLimit):
+    add0dParam(db, 'pObjLimit', objLimit)
 
 ################################################################################
 ################################################################################

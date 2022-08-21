@@ -4347,12 +4347,6 @@ PlaneRownr=-1
 [RP:TEST]
 1=
 
-[RP:UC2]
-1=
-
-[RP:TEST2]
-1=
-
 [GDXDISP: vLinecapacnew Var 1]
 PlaneDim=0
 RowDim=1
@@ -4506,15 +4500,6 @@ Order=
 Decim=7
 PlaneRownr=-1
 
-[RP:EDANDUCSHAREDFEATURES]
-1=
-
-[RP:EDVARSANDCONSTRAINTS]
-1=
-
-[RP:CEWITHED]
-1=
-
 [GDXDISP: pWeightblockpeaknet2h Par 0]
 PlaneDim=0
 RowDim=0
@@ -4578,35 +4563,66 @@ Order=1,2
 Decim=7
 PlaneRownr=-1
 
-[RP:CESHAREDFEATURES]
+[GDXDISP: pLifeline Par 0]
+PlaneDim=0
+RowDim=0
+Squeeze=1
+SqTrail0=0
+Order=
+Decim=7
+PlaneRownr=-1
+
+[RP:TEST2]
+1=
+
+[RP:EDVARSANDCONSTRAINTS]
 1=
 
 [RP:CETIMEDEPENDENTCONSTRAINTS]
 1=
 
+[RP:UC2]
+1=
+
+[GDXDISP: pObjLimit Par 0]
+PlaneDim=0
+RowDim=0
+Squeeze=1
+SqTrail0=0
+Order=
+Decim=7
+PlaneRownr=-1
+
+[RP:MGAWITHED]
+1=
+
+[RP:CESHAREDFEATURES]
+1=
+
+[RP:CEWITHED]
+1=
+
+[RP:EDANDUCSHAREDFEATURES]
+1=
+
 [MRUFILES]
-1=C:\Users\atpha\Desktop\_gams_py_gjo0.lst
-2=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\test.gms
-3=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\test_1var.gms
-4=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\test_1var.lst
-5=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\test_3rdway.lst
-6=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\test_4rdway.gms
-7=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\test_4rdway.lst
-8=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\test_MCsway.gms
-9=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\test_MCsway.lst
+1=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\_gams_py_gjo0.lst
+2=C:\Users\atpha\Documents\Classes\Spring 2016\EGEE\Homework 3\uc2.gms
+3=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\_gams_py_gdb0.gdx
+4=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\_gams_py_gdb1.gdx
+5=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\CESharedFeatures.gms
+6=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\CETimeDependentConstraints.gms
+7=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\CEWithED.gms
+8=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\EDAndUCSharedFeatures.gms
+9=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\EDVarsAndConstraints.gms
 
 [OPENWINDOW_1]
-FILE0=C:\Users\atpha\Documents\Classes\Spring 2016\EGEE\Homework 3\uc2.gms
-FILE1=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\_gams_py_gdb0.gdx
-FILE2=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\_gams_py_gdb1.gdx
-FILE3=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\CESharedFeatures.gms
-FILE4=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\CETimeDependentConstraints.gms
-FILE5=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\CEWithED.gms
-FILE6=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\EDAndUCSharedFeatures.gms
-FILE7=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\EDVarsAndConstraints.gms
-FILE8=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\test2.gms
-FILE9=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\test2.lst
-FILE10=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\_gams_py_gdb0.gdx
+FILE0=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\_gams_py_gdb0.gdx
+FILE1=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\CESharedFeatures.gms
+FILE2=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\CEWithED.gms
+FILE3=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\EDAndUCSharedFeatures.gms
+FILE4=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\MGAWithED.gms
+FILE5=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\MGAWithED.gms
 MAXIM=1
 TOP=0
 LEFT=4

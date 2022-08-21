@@ -2,27 +2,27 @@
 Coal Steam CCSp61,0.0
 Combined Cyclep61,0.0
 Combined Cycle CCSp61,0.0
-Nuclearp61,0.0794198939229942
-Battery Storagep61,4.119825967316688
-Hydrogenp61,0.8247165885219035
+Nuclearp61,0.0
+Battery Storagep61,0.0
+Hydrogenp61,0.0
 Coal Steam CCSp62,0.0
 Combined Cyclep62,0.0
 Combined Cycle CCSp62,0.0
-Nuclearp62,0.07243396081261277
-Battery Storagep62,4.027234179067634
-Hydrogenp62,0.9102859722616513
+Nuclearp62,0.0
+Battery Storagep62,0.0
+Hydrogenp62,2.746370365444984
 Coal Steam CCSp60,0.0
 Combined Cyclep60,0.0
 Combined Cycle CCSp60,0.0
-Nuclearp60,0.07362622215953146
-Battery Storagep60,3.8316382512363973
-Hydrogenp60,1.0113678046614296
+Nuclearp60,0.2254800768951386
+Battery Storagep60,11.978698397620736
+Hydrogenp60,0.0
 Coal Steam CCSp63,0.0
 Combined Cyclep63,0.0
 Combined Cycle CCSp63,0.0
-Nuclearp63,11.454097553947115
-Battery Storagep63,35.372485469929686
-Hydrogenp63,7.449197924458085
+Nuclearp63,11.454097553947083
+Battery Storagep63,35.37248546992962
+Hydrogenp63,7.449197924458096
 Coal Steam CCSp64,0.0
 Combined Cyclep64,0.0
 Combined Cycle CCSp64,0.0
@@ -33,13 +33,13 @@ Coal Steam CCSp65,0.0
 Combined Cyclep65,0.0
 Combined Cycle CCSp65,0.0
 Nuclearp65,0.0
-Battery Storagep65,182.6195556921649
-Hydrogenp65,44.15146801661012
+Battery Storagep65,182.61955569216298
+Hydrogenp65,44.151468016610046
 Coal Steam CCSp67,0.0
 Combined Cyclep67,0.0
 Combined Cycle CCSp67,0.0
 Nuclearp67,0.0
-Battery Storagep67,44.20659762605632
-Hydrogenp67,4.800743164464434
-windlat26.0lon-97.5p65,162.83176979778835
-solarlat26.0lon-97.5p65,1103.010452226396
+Battery Storagep67,44.20659762605894
+Hydrogenp67,4.800743164464464
+windlat26.0lon-97.5p65,162.83176979778852
+solarlat26.0lon-97.5p65,1103.0104522263962
