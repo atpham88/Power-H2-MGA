@@ -34,6 +34,11 @@ def addGenParams(db, df, genSet, mwToGW, lbToShortTon, zoneOrder, newTechs=False
     add1dParam(db, getGenParamDict(df, 'Capacity (MW)', 1 / mwToGW), genSet, df['GAMS Symbol'], 'pCapac' + techLbl)
     # Generator zone
     add1dParam(db, getZonalParamDict(df, zoneOrder), genSet, df['GAMS Symbol'], 'pGenzone' + techLbl)
+    # Zonal max cap investments allowed:
+    if newTechs==True:
+        add1dParam(db, getGenParamDict(df, 'Max Zonal Cap'), genSet, df['GAMS Symbol'], 'pMaxZCap' + techLbl)
+        # Initial weight:
+        add1dParam(db, getGenParamDict(df, 'Variable Weight'), genSet, df['GAMS Symbol'], 'pWeight' + techLbl)
 
 
 def getZonalParamDict(df, zoneOrder, zonalCol='region'):

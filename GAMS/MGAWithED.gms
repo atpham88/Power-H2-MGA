@@ -53,7 +53,7 @@ Equations
 
 ******************CALCULATE COSTS (OBJ FUNC)**********
 *Objective: minimize sum of capacity variables
-objfunc..                vZannual =e= sum(nonstoragetech,vN(nonstoragetech))+ sum(storagetech,vPowBuiltSto(storagetech)+vEneBuiltSto(storagetech));
+objfunc..                vZannual =e= sum(nonstoragetech,vN(nonstoragetech)*pWeighttech(nonstoragetech));
 ******************************************************
 
 ******************INITIAL OBJECTIVE FUNCTION LIMIT**********

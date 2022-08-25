@@ -59,6 +59,9 @@ def main():
     ucOrED = 'None'                                     # STRING that is either: ED, UC, None
     useCO2Price = False                                 # whether to calc & inc CO2 price in operations run
 
+    # ### MGA OPTIONS:
+    maxIter = 100                                       # Maximum number of iterations
+
     # ### LIMITS ON TECHNOLOGY DEPLOYMENT
     maxCapPerTech = {'Wind': 2000 * reDownFactor, 'Solar': 17000 * reDownFactor, 'Thermal': 999999, 'Combined Cycle': 999999,
                      'Storage': 999999, 'Dac': -9999999, 'CCS': 999999, 'Nuclear': 999999, 'Battery Storage': 999999,
@@ -66,20 +69,28 @@ def main():
 
     for item in runningStage:
         rStage = item
+        mgaWeight, iteration, newGenspD, iterationLast = 0, 1, 0, 0
         if rStage == 'CE':
             objLimit = 0
-            resultsCE = masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDemand, elecDemandScen, reSourceMERRA, fixDays,
-                                       buildLimitsCase, runOnSC, co2EmsCapInFinalYear, yearIncDACS, compressFleet, runCE, ceOps, numBlocks, daysPerBlock,
-                                       daysPerPeak, startYear, endYear, yearStepCE, greenField, includeRes, stoInCE, seasStoInCE, retireByAge,
-                                       planningReserveMargin, retirementCFCutoff, discountRate, ptEligRetCF, incITC, incNuc, runFirstYear, ucOrED,
-                                       useCO2Price, maxCapPerTech, reDownFactor, annualDemandGrowth)
+            (resultsCE, mgaWeight,
+             newGenspD, iterationLast) = masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDemand, elecDemandScen, reSourceMERRA, fixDays,
+                                                        buildLimitsCase, runOnSC, co2EmsCapInFinalYear, yearIncDACS, compressFleet, runCE, ceOps, numBlocks, daysPerBlock,
+                                                        daysPerPeak, startYear, endYear, yearStepCE, greenField, includeRes, stoInCE, seasStoInCE, retireByAge,
+                                                        planningReserveMargin, retirementCFCutoff, discountRate, ptEligRetCF, incITC, incNuc, runFirstYear, ucOrED,
+                                                        useCO2Price, maxCapPerTech, reDownFactor, annualDemandGrowth, iteration, mgaWeight, newGenspD, iterationLast)
         elif rStage == 'MGA':
             fval = pd.read_csv(projectPath + resultsCE + "\\vZannualCE" + str(endYear-1) + ".csv", header=None)
             objLimit = fval.iloc[0,0]*1.1
-            resultsMGA = masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDemand, elecDemandScen, reSourceMERRA, fixDays,
-                                        buildLimitsCase, runOnSC, co2EmsCapInFinalYear, yearIncDACS, compressFleet, runCE, ceOps, numBlocks, daysPerBlock,
-                                        daysPerPeak, startYear, endYear, yearStepCE, greenField, includeRes, stoInCE, seasStoInCE, retireByAge,
-                                        planningReserveMargin, retirementCFCutoff, discountRate, ptEligRetCF, incITC, incNuc, runFirstYear, ucOrED,
-                                        useCO2Price, maxCapPerTech, reDownFactor, annualDemandGrowth)
+            while iteration <= maxIter:
+                (resultsMGA, mgaWeight,
+                 newGenspD, iterationLast) = masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDemand, elecDemandScen, reSourceMERRA, fixDays,
+                                                            buildLimitsCase, runOnSC, co2EmsCapInFinalYear, yearIncDACS, compressFleet, runCE, ceOps, numBlocks, daysPerBlock,
+                                                            daysPerPeak, startYear, endYear, yearStepCE, greenField, includeRes, stoInCE, seasStoInCE, retireByAge,
+                                                            planningReserveMargin, retirementCFCutoff, discountRate, ptEligRetCF, incITC, incNuc, runFirstYear, ucOrED,
+                                                            useCO2Price, maxCapPerTech, reDownFactor, annualDemandGrowth, iteration, mgaWeight, newGenspD, iterationLast)
+                if iteration == iterationLast:
+                    break
+                else:
+                    iteration +=1
 
 main()
