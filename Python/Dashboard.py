@@ -9,7 +9,7 @@ def main():
 
     # ### STUDY AREA AND METEOROLOGICAL-DEPENDENT DATA
     metYear = 2012                                      # year of meteorological data used for demand and renewables
-    interconn = 'ERCOT'                                 # which interconnection to run - ERCOT, WECC, EI
+    interconn = 'EI'                                 # which interconnection to run - ERCOT, WECC, EI
     balAuths = 'full'                                   # full: run for all BAs in interconn. TODO: add selection of a subset of BAs.
     electrifiedDemand = True                            # whether to import electrified demand futures from NREL's EFS
     elecDemandScen = 'REFERENCE'                        # 'REFERENCE','HIGH','MEDIUM' (ref is lower than med)
@@ -17,7 +17,7 @@ def main():
     fixDays = True
 
     annualDemandGrowth = 0                              # fraction demand growth per year - ignored if use EFS data (electrifieDemand=True)
-    reDownFactor = 200                                  # downscaling factor for W&S new CFs; 1 means full resolution, 2 means half resolution, 3 is 1/3 resolution, etc
+    reDownFactor = 4                                    # downscaling factor for W&S new CFs; 1 means full resolution, 2 means half resolution, 3 is 1/3 resolution, etc
 
     # ### BUILD SCENARIO
     buildLimitsCase = 1                                 # 1 = reference case,

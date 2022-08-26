@@ -7,18 +7,63 @@ import copy, os, random, pandas as pd, numpy as np
 from CreateFleetForCELoop import *
 from AuxFuncs import *
 from GAMSAuxFuncs import *
+import xlsxwriter as xw
 
 ########### STORE BUILD DECISIONS FROM CAPACITY EXPANSION ######################
 #Inputs: running list of CE builds (2d list), CE model output as GAMS object, 
 #curr CE year
 #Outputs: new gen builds by technology (list of tuples of (techtype, # builds))
-def saveCEBuilds(capacExpModel,resultsDir,currYear):
+def saveCEBuilds(capacExpModel,iteration, rStage, resultsDir,currYear):
     newGenerators = extract1dVarResultsFromGAMSModel(capacExpModel,'vN')
     newStoECap = extract1dVarResultsFromGAMSModel(capacExpModel,'vEneBuiltSto')
     newStoPCap = extract1dVarResultsFromGAMSModel(capacExpModel,'vPowBuiltSto')
-    newLines = extract1dVarResultsFromGAMSModel(capacExpModel,'vNl')   
-    for n,d in zip(['vN','vEneBuiltSto','vPowBuiltSto','vNl'],[newGenerators,newStoECap,newStoPCap,newLines]):
-        pd.Series(d).to_csv(os.path.join(resultsDir,n+str(currYear)+'.csv'))
+    newLines = extract1dVarResultsFromGAMSModel(capacExpModel,'vNl')
+    if rStage == 'MGA':
+        for n,d in zip(['vN'+ '_' + str(iteration) + '_','vEneBuiltSto'+'_' + str(iteration) + '_','vPowBuiltSto'+'_' + str(iteration) + '_','vNl'+'_' + str(iteration) + '_'],[newGenerators,newStoECap,newStoPCap,newLines]):
+            pd.Series(d).to_csv(os.path.join(resultsDir,n+str(currYear)+'.csv'))
+
+        for n,d in zip(['vN','vEneBuiltSto','vPowBuiltSto','vNl'],[newGenerators,newStoECap,newStoPCap,newLines]):
+            pd.Series(d).to_csv(os.path.join(resultsDir,n+str(currYear)+'.csv'))
+
+    #if rStage == 'MGA':
+    #    vN_MGA = pd.DataFrame.from_dict(newGenerators, orient='index')
+    #    vNl_MGA = pd.DataFrame.from_dict(newLines, orient='index')
+    #    vP_MGA = pd.DataFrame.from_dict(newStoPCap, orient='index')
+    #    vE_MGA = pd.DataFrame.from_dict(newStoECap, orient='index')
+
+    #    vN_MGA = vN_MGA.reset_index()
+    #    vNl_MGA = vNl_MGA.reset_index()
+    #    vP_MGA = vP_MGA.reset_index()
+    #    vE_MGA = vE_MGA.reset_index()
+
+    #    vN_MGA = vN_MGA.rename(columns={'index': 'GAMS Symbol', 0: 'vN'})
+    #    vNl_MGA = vNl_MGA.rename(columns={'index': 'Lines', 0: 'vNl'})
+    #    vP_MGA = vP_MGA.rename(columns={'index': 'Storage', 0: 'vPowBuiltSto'})
+    #    vE_MGA = vE_MGA.rename(columns={'index': 'Storage', 0: 'vEneBuiltSto'})
+
+    #    results_book = xw.Workbook(os.path.join(resultsDir, 'Investments_' +str(currYear)+'.xlsx'))
+    #    result_sheet_vN = results_book.add_worksheet('vN')
+    #    result_sheet_vNl = results_book.add_worksheet('vNl')
+    #    result_sheet_vE = results_book.add_worksheet('vEneBuiltSto')
+    #    result_sheet_vP = results_book.add_worksheet('vPowBuiltSto')
+
+    #    result_sheet_vN.write("A1", "GAMS Symbol")
+    #    result_sheet_vNl.write("A1", "Line")
+
+    #    for item in list(range(len(vN_MGA))):
+    #        result_sheet_vN.write(item + 1, iteration, vN_MGA['vN'][item])
+
+    #    for item in list(range(len(vNl_MGA))):
+    #        result_sheet_vNl.write(item + 1, iteration, vNl_MGA['vNl'][item])
+
+    #    for item in list(range(len(vE_MGA))):
+    #        result_sheet_vE.write(item + 1, iteration, vE_MGA['vEneBuiltSto'][item])
+
+    #    for item in list(range(len(vP_MGA))):
+    #        result_sheet_vP.write(item + 1, iteration, vP_MGA['vPowBuiltSto'][item])
+
+    #    results_book.close()
+
     return newGenerators,newStoECap,newStoPCap,newLines
                 
 ########### ADD CAPACITY EXPANSION BUILD DECISIONS TO FLEET ####################

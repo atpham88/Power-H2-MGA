@@ -1,0 +1,128 @@
+,0
+Coal Steam CCSp61,0.0
+Combined Cyclep61,0.0
+Combined Cycle CCSp61,0.0
+Nuclearp61,0.0
+Battery Storagep61,80.75617368628974
+Hydrogenp61,4.115836343607787
+Coal Steam CCSp62,0.0
+Combined Cyclep62,0.0
+Combined Cycle CCSp62,0.0
+Nuclearp62,0.0
+Battery Storagep62,40.76664713054372
+Hydrogenp62,2.565734557864335
+Coal Steam CCSp60,0.0
+Combined Cyclep60,0.0
+Combined Cycle CCSp60,0.0
+Nuclearp60,0.0
+Battery Storagep60,40.86065256959303
+Hydrogenp60,2.779563891824936
+Coal Steam CCSp63,0.0
+Combined Cyclep63,0.0
+Combined Cycle CCSp63,0.0
+Nuclearp63,0.0
+Battery Storagep63,197.9410575428355
+Hydrogenp63,22.176889384009765
+Coal Steam CCSp64,0.0
+Combined Cyclep64,0.0
+Combined Cycle CCSp64,0.0
+Nuclearp64,0.0
+Battery Storagep64,134.93025487164186
+Hydrogenp64,12.14947033260975
+Coal Steam CCSp65,0.0
+Combined Cyclep65,0.0
+Combined Cycle CCSp65,0.0
+Nuclearp65,0.0
+Battery Storagep65,50.779182664066525
+Hydrogenp65,7.155700827671955
+Coal Steam CCSp67,0.0
+Combined Cyclep67,0.0
+Combined Cycle CCSp67,0.0
+Nuclearp67,1.6021276472435664
+Battery Storagep67,36.81373274367856
+Hydrogenp67,7.651051746710793
+windlat26.0lon-97.5p65,0.0
+windlat27.0lon-99.375p65,0.4629741932649075
+windlat27.5lon-99.375p65,0.0
+windlat28.0lon-99.375p65,16.0
+windlat28.5lon-100.0p65,13.67071279044012
+windlat28.5lon-97.5p65,0.0
+windlat29.0lon-99.375p65,0.0
+windlat29.0lon-96.875p65,15.905668285660248
+windlat29.5lon-98.75p65,0.0
+windlat29.5lon-96.25p65,0.0
+solarlat26.0lon-97.5p65,0.0
+solarlat27.0lon-99.375p65,0.0
+solarlat27.5lon-99.375p65,0.0
+solarlat28.0lon-99.375p65,6.668714406349526
+solarlat28.5lon-100.0p65,0.0
+solarlat28.5lon-97.5p65,0.0
+solarlat29.0lon-99.375p65,5.397594098129787
+solarlat29.0lon-96.875p65,2.9884517097211223
+solarlat29.5lon-98.75p65,0.0
+solarlat29.5lon-96.25p65,2.935698506094883
+windlat29.5lon-103.125p61,0.7653572040647655
+windlat30.0lon-103.75p61,0.0
+windlat30.0lon-101.25p61,0.0
+windlat30.5lon-103.125p61,0.0
+windlat30.5lon-100.625p61,0.0
+windlat31.0lon-105.0p61,0.0
+windlat31.0lon-102.5p61,0.752240036199403
+windlat31.5lon-105.625p61,0.20146232915116435
+windlat31.5lon-100.625p61,0.0
+windlat32.0lon-104.375p61,0.0
+windlat32.0lon-99.375p61,0.0
+windlat32.5lon-100.0p61,0.9517995475055758
+solarlat29.5lon-103.125p61,5.430018024245099
+solarlat30.0lon-103.75p61,6.628828682568979
+solarlat30.0lon-101.25p61,1.314895523300187
+solarlat30.5lon-103.125p61,0.0
+solarlat30.5lon-100.625p61,8.36692658189594
+solarlat31.0lon-105.0p61,4.242737289594999
+solarlat31.0lon-102.5p61,0.0
+solarlat31.5lon-105.625p61,6.205652837111211
+solarlat31.5lon-100.625p61,179.24253280913695
+solarlat32.0lon-104.375p61,0.0
+solarlat32.0lon-99.375p61,0.0
+solarlat32.5lon-100.0p61,0.0
+windlat30.0lon-98.75p64,16.0
+windlat30.0lon-96.25p64,0.0
+windlat30.5lon-98.125p64,15.871450161486496
+windlat31.0lon-100.0p64,16.0
+solarlat30.0lon-98.75p64,0.0
+solarlat30.0lon-96.25p64,0.0
+solarlat30.5lon-98.125p64,0.0
+solarlat31.0lon-100.0p64,492.2154064290323
+windlat31.0lon-97.5p63,0.0
+windlat31.5lon-98.125p63,16.0
+windlat31.5lon-95.625p63,0.0
+windlat32.0lon-96.875p63,0.0
+windlat32.5lon-97.5p63,15.953224144290242
+windlat32.5lon-95.0p63,16.0
+windlat33.0lon-97.5p63,0.0
+windlat33.5lon-98.75p63,0.0
+windlat33.5lon-96.25p63,13.119253456368247
+windlat34.0lon-98.125p63,0.0
+solarlat31.0lon-97.5p63,0.0
+solarlat31.5lon-98.125p63,646.4872298987268
+solarlat31.5lon-95.625p63,3.6546914859242055
+solarlat32.0lon-96.875p63,0.0
+solarlat32.5lon-97.5p63,0.0
+solarlat32.5lon-95.0p63,0.0
+solarlat33.0lon-98.75p63,0.0
+solarlat33.0lon-96.25p63,0.0
+solarlat33.5lon-97.5p63,0.0
+solarlat33.5lon-95.0p63,10.451613251438564
+solarlat34.0lon-98.75p63,0.0
+windlat31.5lon-103.125p62,0.7797196386757821
+windlat32.0lon-101.875p62,0.584346024114712
+windlat32.5lon-102.5p62,10.527062414437944
+solarlat31.5lon-103.125p62,0.0
+solarlat32.0lon-101.875p62,0.0
+solarlat32.5lon-102.5p62,0.0
+windlat33.0lon-100.0p60,0.14237325819878777
+windlat33.5lon-101.25p60,0.0
+windlat34.0lon-100.625p60,0.5132322570041437
+windlat34.5lon-100.625p60,0.0
+solarlat33.5lon-100.0p60,0.0
+solarlat34.5lon-100.0p60,4.410540904901093

@@ -400,8 +400,9 @@ def runCapacityExpansion(genFleet, demand, startYear, currYear, planningReserveM
         capacExpModel, ms, ss = runGAMS('MGAWith{o}.gms'.format(o=ceOps), ws, db)
 
     # ########## SAVE AND PROCESS CE RESULTS
-    newGens, newStoECap, newStoPCap, newLines = saveCEBuilds(capacExpModel, resultsDir, currYear)
-    # Recalculate MGA weight for next iteration:
+    newGens, newStoECap, newStoPCap, newLines = saveCEBuilds(capacExpModel, iteration, rStage, resultsDir, currYear)
+
+    # Recalculate MGA weight for next iteration and determine termination condition for MGA:
     newGenspDPrior = newGenspD
     newGenspD = pd.DataFrame.from_dict(newGens, orient='index')
     newGenspD = newGenspD.reset_index()
@@ -410,10 +411,18 @@ def runCapacityExpansion(genFleet, demand, startYear, currYear, planningReserveM
 
     if rStage == 'MGA':
         if iteration > 1:
-            capVarChange = abs(newGenspD['Cap Investments'] - newGenspDPrior['Cap Investments']) / newGenspDPrior['Cap Investments']
+            capVarChange = pd.DataFrame(np.zeros([len(newGenspD), 1]))
+            for item in list(range(len(newGenspD))):
+                if newGenspD['Cap Investments'][item] > 0:
+                    capVarChange[0][item] = abs(newGenspD['Cap Investments'][item] - newGenspDPrior['Cap Investments'][item]) / newGenspDPrior['Cap Investments'][item]
+                else:
+                    capVarChange[0][item] = 0
+                    mgaWeight['Variable Weight'][item] = 0
+
+            capVarChange = capVarChange.rename(columns={0: 'Pct'})
             capVarChange = capVarChange.dropna()
             capVarChange = capVarChange.reset_index()
-            if (capVarChange['Cap Investments'] <0.05).all():
+            if (capVarChange['Pct'] < 0.05).all():
                 iterationLast = iteration
 
     if rStage == 'CE' or (rStage == 'MGA' and iteration == iterationLast):
