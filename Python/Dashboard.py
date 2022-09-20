@@ -5,11 +5,16 @@ import pandas as pd
 from MASTER import *
 
 def main():
-    runningStage = ['CE', 'MGA']
+    modelType = 'CE'                                    # Type of model to run (CE or MGA)
+
+    if modelType == 'CE':
+        runningStage = ['CE']
+    elif modelType == 'MGA':
+        runningStage = ['CE', 'MGA']
 
     # ### STUDY AREA AND METEOROLOGICAL-DEPENDENT DATA
     metYear = 2012                                      # year of meteorological data used for demand and renewables
-    interconn = 'EI'                                 # which interconnection to run - ERCOT, WECC, EI
+    interconn = 'ERCOT'                                 # which interconnection to run - ERCOT, WECC, EI
     balAuths = 'full'                                   # full: run for all BAs in interconn. TODO: add selection of a subset of BAs.
     electrifiedDemand = True                            # whether to import electrified demand futures from NREL's EFS
     elecDemandScen = 'REFERENCE'                        # 'REFERENCE','HIGH','MEDIUM' (ref is lower than med)
@@ -42,7 +47,10 @@ def main():
     # ### CE OPTIONS
     runCE, ceOps = True, 'ED'                           # ops are 'ED' or 'UC' (econ disp or unit comm constraints)
     numBlocks, daysPerBlock, daysPerPeak = 4, 2, 3      # num rep time blocks, days per rep block, and days per peak block in CE
-    startYear, endYear, yearStepCE = 2020, 2051, 30
+    if modelType == 'CE':
+        startYear, endYear, yearStepCE = 2020, 2051, 5
+    elif modelType == 'MGA':
+        startYear, endYear, yearStepCE = 2020, 2051, 30
 
     greenField = False                                  # whether to run greenField (set to True) or brownfield (False)
     includeRes = False                                  # whether to include reserves in CE & dispatch models (if False, multiplies reserve timeseries by 0)

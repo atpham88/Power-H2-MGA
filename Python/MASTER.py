@@ -542,7 +542,7 @@ def runDispatch(genFleet, objLimit, hourlyDemand, currYear, demandShifter, deman
 def createGAMSWorkspaceAndDatabase(runOnSC):
     # currDir = os.getcwd()
     if runOnSC:
-        gamsFileDir = '/home/anph/projects/Power-H2_MGA/Model/GAMS'
+        gamsFileDir = '/home/anph/projects/PH2/Model/GAMS'
         gamsSysDir = '/home/anph/gams_35_1'
     else:
         # gamsFileDir = 'C:\\Users\\mtcraig\\Desktop\\Research\\Models\\CEGit\\GAMS'
