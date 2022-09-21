@@ -13,17 +13,25 @@ import xlsxwriter as xw
 #Inputs: running list of CE builds (2d list), CE model output as GAMS object, 
 #curr CE year
 #Outputs: new gen builds by technology (list of tuples of (techtype, # builds))
-def saveCEBuilds(capacExpModel,iteration, rStage, resultsDir,currYear):
-    newGenerators = extract1dVarResultsFromGAMSModel(capacExpModel,'vN')
-    newStoECap = extract1dVarResultsFromGAMSModel(capacExpModel,'vEneBuiltSto')
-    newStoPCap = extract1dVarResultsFromGAMSModel(capacExpModel,'vPowBuiltSto')
-    newLines = extract1dVarResultsFromGAMSModel(capacExpModel,'vNl')
-    if rStage == 'MGA':
-        for n,d in zip(['vN'+ '_' + str(iteration) + '_','vEneBuiltSto'+'_' + str(iteration) + '_','vPowBuiltSto'+'_' + str(iteration) + '_','vNl'+'_' + str(iteration) + '_'],[newGenerators,newStoECap,newStoPCap,newLines]):
-            pd.Series(d).to_csv(os.path.join(resultsDir,n+str(currYear)+'.csv'))
+def saveCEBuilds(capacExpModel, iteration, rStage, resultsDir, currYear):
+    newGenerators = extract1dVarResultsFromGAMSModel(capacExpModel, 'vN')
+    newStoECap = extract1dVarResultsFromGAMSModel(capacExpModel, 'vEneBuiltSto')
+    newStoPCap = extract1dVarResultsFromGAMSModel(capacExpModel, 'vPowBuiltSto')
+    newLines = extract1dVarResultsFromGAMSModel(capacExpModel, 'vLinecapacnew')
 
-        for n,d in zip(['vN','vEneBuiltSto','vPowBuiltSto','vNl'],[newGenerators,newStoECap,newStoPCap,newLines]):
-            pd.Series(d).to_csv(os.path.join(resultsDir,n+str(currYear)+'.csv'))
+    print('Investments in ' + str(currYear))
+    if rStage == 'MGA':
+        for n,d in zip(['vN'+ '_' + str(iteration) + '_', 'vEneBuiltSto' + '_' + str(iteration) + '_',
+                        'vPowBuiltSto' + '_' + str(iteration) + '_','vLinecapacnew'+'_' + str(iteration) + '_'],
+                       [newGenerators, newStoECap, newStoPCap, newLines]):
+            s = pd.Series(d)
+            s.to_csv(os.path.join(resultsDir, n + str(currYear) + '.csv'))
+
+    for n,d in zip(['vN','vEneBuiltSto','vPowBuiltSto','vLinecapacnew'],[newGenerators, newStoECap, newStoPCap, newLines]):
+        s = pd.Series(d)
+        s.to_csv(os.path.join(resultsDir, n + str(currYear) + '.csv'))
+        print('***', n.upper(), '\n', s.loc[s > 0])
+
 
     #if rStage == 'MGA':
     #    vN_MGA = pd.DataFrame.from_dict(newGenerators, orient='index')
@@ -68,7 +76,7 @@ def saveCEBuilds(capacExpModel,iteration, rStage, resultsDir,currYear):
                 
 ########### ADD CAPACITY EXPANSION BUILD DECISIONS TO FLEET ####################
 #Adds generators to fleet
-def addNewGensToFleet(genFleet,newGenerators,newStoECap,newStoPCap,newTechs,currYear,ocAdderMin=0,ocAdderMax=0.05):
+def addNewGensToFleet(genFleet,newGenerators,newStoECap,newStoPCap,newTechs,currYear):
     for tech,newBuilds in newGenerators.items():
         if newBuilds>0: 
             techRow = newTechs.loc[newTechs['GAMS Symbol']==tech].copy()
@@ -102,22 +110,10 @@ def addNewTechRowToFleet(genFleet,techRow):
     return genFleet
 
 ########### ADD NEW LINE CAPACITIES TO LINE LIMITS #############################
-def addNewLineCapToLimits(lineLimits, newLines):
+def addNewLineCapToLimits(lineLimits, newLines, gwToMW = 1000):
     for line,newCapacity in newLines.items():
-        lineLimits.loc[lineLimits['GAMS Symbol']==line,'AC'] += newCapacity
+        lineLimits.loc[lineLimits['GAMS Symbol']==line,'TotalCapacity'] += newCapacity * gwToMW  # CE solves for GW; scale to MW
     return lineLimits
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 # ########### SAVE CAPACITY EXPANSION RESULTS ####################################

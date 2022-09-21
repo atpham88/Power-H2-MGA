@@ -38,6 +38,13 @@ Parameters
 	pHourInitblock6h
 	pHourFinalblock6h
 	pSOCScalarblock6h
+	pMaxgenhydroblock0h(z)
+	pMaxgenhydroblock1h(z)
+	pMaxgenhydroblockpeaktotal2h(z)
+	pMaxgenhydroblockpeaknet3h(z)
+	pMaxgenhydroblock4h(z)
+	pMaxgenhydroblockpeaknetramp5h(z)
+	pMaxgenhydroblock6h(z)
 	;
 
 $if not set gdxincname $abort 'no include file name for data file provided'
@@ -46,6 +53,7 @@ $load block0h,block1h,blockpeaktotal2h,blockpeaknet3h,block4h,blockpeaknetramp5h
 $load pWeightblock0h,pWeightblock1h,pWeightblockpeaktotal2h,pWeightblockpeaknet3h,pWeightblock4h,pWeightblockpeaknetramp5h,pWeightblock6h
 $load pSOCScalarblock1h,pSOCScalarblockpeaktotal2h,pSOCScalarblockpeaknet3h,pSOCScalarblock4h,pSOCScalarblockpeaknetramp5h,pSOCScalarblock6h
 $load pInitSOC,pInitSOCtech
+$load pMaxgenhydroblock0h,pMaxgenhydroblock1h,pMaxgenhydroblockpeaktotal2h,pMaxgenhydroblockpeaknet3h,pMaxgenhydroblock4h,pMaxgenhydroblockpeaknetramp5h,pMaxgenhydroblock6h
 $gdxin
 
 pHourInitblock0h = smin(h$block0h(h),ord(h));
@@ -120,12 +128,12 @@ Equations
 	co2Ems
 	defSOC(storageegu,h)
 	genPlusUpResToSOC(storageegu,h)
-setInitSOCblock1hltstorageegu(ltstorageegu)
-setInitSOCblockpeaktotal2hltstorageegu(ltstorageegu)
-setInitSOCblockpeaknet3hltstorageegu(ltstorageegu)
-setInitSOCblock4hltstorageegu(ltstorageegu)
-setInitSOCblockpeaknetramp5hltstorageegu(ltstorageegu)
-setInitSOCblock6hltstorageegu(ltstorageegu)
+	setInitSOCblock1hltstorageegu(ltstorageegu)
+	setInitSOCblockpeaktotal2hltstorageegu(ltstorageegu)
+	setInitSOCblockpeaknet3hltstorageegu(ltstorageegu)
+	setInitSOCblock4hltstorageegu(ltstorageegu)
+	setInitSOCblockpeaknetramp5hltstorageegu(ltstorageegu)
+	setInitSOCblock6hltstorageegu(ltstorageegu)
 	defFinalSOCblock0h(storageegu,h)
 	defChangeSOCblock0h(storageegu)
 	defFinalSOCblock1h(storageegu,h)
@@ -140,20 +148,20 @@ setInitSOCblock6hltstorageegu(ltstorageegu)
 	defChangeSOCblockpeaknetramp5h(storageegu)
 	defFinalSOCblock6h(storageegu,h)
 	defChangeSOCblock6h(storageegu)
-setInitSOCblock1hststorageegu(ststorageegu)
-setInitSOCblockpeaktotal2hststorageegu(ststorageegu)
-setInitSOCblockpeaknet3hststorageegu(ststorageegu)
-setInitSOCblock4hststorageegu(ststorageegu)
-setInitSOCblockpeaknetramp5hststorageegu(ststorageegu)
-setInitSOCblock6hststorageegu(ststorageegu)
+	setInitSOCblock1hststorageegu(ststorageegu)
+	setInitSOCblockpeaktotal2hststorageegu(ststorageegu)
+	setInitSOCblockpeaknet3hststorageegu(ststorageegu)
+	setInitSOCblock4hststorageegu(ststorageegu)
+	setInitSOCblockpeaknetramp5hststorageegu(ststorageegu)
+	setInitSOCblock6hststorageegu(ststorageegu)
 	defSOCtech(storagetech,h)
 	genPlusUpResToSOCtech(storagetech,h)
-setInitSOCblock1hltstoragetech(ltstoragetech)
-setInitSOCblockpeaktotal2hltstoragetech(ltstoragetech)
-setInitSOCblockpeaknet3hltstoragetech(ltstoragetech)
-setInitSOCblock4hltstoragetech(ltstoragetech)
-setInitSOCblockpeaknetramp5hltstoragetech(ltstoragetech)
-setInitSOCblock6hltstoragetech(ltstoragetech)
+	setInitSOCblock1hltstoragetech(ltstoragetech)
+	setInitSOCblockpeaktotal2hltstoragetech(ltstoragetech)
+	setInitSOCblockpeaknet3hltstoragetech(ltstoragetech)
+	setInitSOCblock4hltstoragetech(ltstoragetech)
+	setInitSOCblockpeaknetramp5hltstoragetech(ltstoragetech)
+	setInitSOCblock6hltstoragetech(ltstoragetech)
 	defFinalSOCblock0htech(storagetech,h)
 	defChangeSOCblock0htech(storagetech)
 	defFinalSOCblock1htech(storagetech,h)
@@ -168,12 +176,12 @@ setInitSOCblock6hltstoragetech(ltstoragetech)
 	defChangeSOCblockpeaknetramp5htech(storagetech)
 	defFinalSOCblock6htech(storagetech,h)
 	defChangeSOCblock6htech(storagetech)
-setInitSOCblock1hststoragetech(ststoragetech)
-setInitSOCblockpeaktotal2hststoragetech(ststoragetech)
-setInitSOCblockpeaknet3hststoragetech(ststoragetech)
-setInitSOCblock4hststoragetech(ststoragetech)
-setInitSOCblockpeaknetramp5hststoragetech(ststoragetech)
-setInitSOCblock6hststoragetech(ststoragetech)
+	setInitSOCblock1hststoragetech(ststoragetech)
+	setInitSOCblockpeaktotal2hststoragetech(ststoragetech)
+	setInitSOCblockpeaknet3hststoragetech(ststoragetech)
+	setInitSOCblock4hststoragetech(ststoragetech)
+	setInitSOCblockpeaknetramp5hststoragetech(ststoragetech)
+	setInitSOCblock6hststoragetech(ststoragetech)
 	rampUpblock0h(egu,block0h)
 	rampUpblock1h(egu,block1h)
 	rampUpblockpeaktotal2h(egu,blockpeaktotal2h)
@@ -188,6 +196,13 @@ setInitSOCblock6hststoragetech(ststoragetech)
 	rampUpblock4htech(tech,block4h)
 	rampUpblockpeaknetramp5htech(tech,blockpeaknetramp5h)
 	rampUpblock6htech(tech,block6h)
+	limitHydroGenblock0h(z)
+	limitHydroGenblock1h(z)
+	limitHydroGenblockpeaktotal2h(z)
+	limitHydroGenblockpeaknet3h(z)
+	limitHydroGenblock4h(z)
+	limitHydroGenblockpeaknetramp5h(z)
+	limitHydroGenblock6h(z)
 	;
 
 defSOC(storageegu,h).. vStateofcharge(storageegu,h) =e= pInitSOC(storageegu)$[ord(h)=pHourInitblock0h] + vInitSOCblock1h(storageegu)$[ord(h)=pHourInitblock1h] + vInitSOCblockpeaktotal2h(storageegu)$[ord(h)=pHourInitblockpeaktotal2h] + vInitSOCblockpeaknet3h(storageegu)$[ord(h)=pHourInitblockpeaknet3h] + vInitSOCblock4h(storageegu)$[ord(h)=pHourInitblock4h] + vInitSOCblockpeaknetramp5h(storageegu)$[ord(h)=pHourInitblockpeaknetramp5h] + vInitSOCblock6h(storageegu)$[ord(h)=pHourInitblock6h] +
@@ -236,18 +251,18 @@ defFinalSOCblock6h(ltstorageegu,h)$[ord(h)=pHourFinalblock6h].. vFinalSOCblock6h
                            vStateofcharge(ltstorageegu,h);
 defChangeSOCblock6h(ltstorageegu).. vChangeSOCblock6h(ltstorageegu) =e= vFinalSOCblock6h(ltstorageegu) 
                               - vInitSOCblock6h(ltstorageegu);
-setInitSOCblock1hststorageegu(ststorageegu).. vInitSOCblock1h(ststorageegu) =l= 
-                                    pInitSOC(ststorageegu);
-setInitSOCblockpeaktotal2hststorageegu(ststorageegu).. vInitSOCblockpeaktotal2h(ststorageegu) =l= 
-                                    pInitSOC(ststorageegu);
-setInitSOCblockpeaknet3hststorageegu(ststorageegu).. vInitSOCblockpeaknet3h(ststorageegu) =l= 
-                                    pInitSOC(ststorageegu);
-setInitSOCblock4hststorageegu(ststorageegu).. vInitSOCblock4h(ststorageegu) =l= 
-                                    pInitSOC(ststorageegu);
-setInitSOCblockpeaknetramp5hststorageegu(ststorageegu).. vInitSOCblockpeaknetramp5h(ststorageegu) =l= 
-                                    pInitSOC(ststorageegu);
-setInitSOCblock6hststorageegu(ststorageegu).. vInitSOCblock6h(ststorageegu) =l= 
-                                    pInitSOC(ststorageegu);
+setInitSOCblock1hststorageegu(ststorageegu).. vInitSOCblock1h(ststorageegu) =e= 
+                                             pInitSOC(ststorageegu);
+setInitSOCblockpeaktotal2hststorageegu(ststorageegu).. vInitSOCblockpeaktotal2h(ststorageegu) =e= 
+                                             pInitSOC(ststorageegu);
+setInitSOCblockpeaknet3hststorageegu(ststorageegu).. vInitSOCblockpeaknet3h(ststorageegu) =e= 
+                                             pInitSOC(ststorageegu);
+setInitSOCblock4hststorageegu(ststorageegu).. vInitSOCblock4h(ststorageegu) =e= 
+                                             pInitSOC(ststorageegu);
+setInitSOCblockpeaknetramp5hststorageegu(ststorageegu).. vInitSOCblockpeaknetramp5h(ststorageegu) =e= 
+                                             pInitSOC(ststorageegu);
+setInitSOCblock6hststorageegu(ststorageegu).. vInitSOCblock6h(ststorageegu) =e= 
+                                             pInitSOC(ststorageegu);
 
 defSOCtech(storagetech,h).. vStateofchargetech(storagetech,h) =e= pInitSOCtech(storagetech)$[ord(h)=pHourInitblock0h]*vEneBuiltSto(storagetech) + vInitSOCblock1htech(storagetech)$[ord(h)=pHourInitblock1h] + vInitSOCblockpeaktotal2htech(storagetech)$[ord(h)=pHourInitblockpeaktotal2h] + vInitSOCblockpeaknet3htech(storagetech)$[ord(h)=pHourInitblockpeaknet3h] + vInitSOCblock4htech(storagetech)$[ord(h)=pHourInitblock4h] + vInitSOCblockpeaknetramp5htech(storagetech)$[ord(h)=pHourInitblockpeaknetramp5h] + vInitSOCblock6htech(storagetech)$[ord(h)=pHourInitblock6h] +
 	vStateofchargetech(storagetech, h-1)$nonInitH(h) - 
@@ -295,18 +310,18 @@ defFinalSOCblock6htech(ltstoragetech,h)$[ord(h)=pHourFinalblock6h].. vFinalSOCbl
                            vStateofchargetech(ltstoragetech,h);
 defChangeSOCblock6htech(ltstoragetech).. vChangeSOCblock6htech(ltstoragetech) =e= vFinalSOCblock6htech(ltstoragetech) 
                               - vInitSOCblock6htech(ltstoragetech);
-setInitSOCblock1hststoragetech(ststoragetech).. vInitSOCblock1htech(ststoragetech) =l= 
-                                    pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
-setInitSOCblockpeaktotal2hststoragetech(ststoragetech).. vInitSOCblockpeaktotal2htech(ststoragetech) =l= 
-                                    pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
-setInitSOCblockpeaknet3hststoragetech(ststoragetech).. vInitSOCblockpeaknet3htech(ststoragetech) =l= 
-                                    pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
-setInitSOCblock4hststoragetech(ststoragetech).. vInitSOCblock4htech(ststoragetech) =l= 
-                                    pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
-setInitSOCblockpeaknetramp5hststoragetech(ststoragetech).. vInitSOCblockpeaknetramp5htech(ststoragetech) =l= 
-                                    pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
-setInitSOCblock6hststoragetech(ststoragetech).. vInitSOCblock6htech(ststoragetech) =l= 
-                                    pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
+setInitSOCblock1hststoragetech(ststoragetech).. vInitSOCblock1htech(ststoragetech) =e= 
+                                             pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
+setInitSOCblockpeaktotal2hststoragetech(ststoragetech).. vInitSOCblockpeaktotal2htech(ststoragetech) =e= 
+                                             pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
+setInitSOCblockpeaknet3hststoragetech(ststoragetech).. vInitSOCblockpeaknet3htech(ststoragetech) =e= 
+                                             pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
+setInitSOCblock4hststoragetech(ststoragetech).. vInitSOCblock4htech(ststoragetech) =e= 
+                                             pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
+setInitSOCblockpeaknetramp5hststoragetech(ststoragetech).. vInitSOCblockpeaknetramp5htech(ststoragetech) =e= 
+                                             pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
+setInitSOCblock6hststoragetech(ststoragetech).. vInitSOCblock6htech(ststoragetech) =e= 
+                                             pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
 
 varCost.. vVarcostannual =e= pWeightblock0h*(sum((egu,block0h),vVarcost(egu,block0h))+sum((tech,block0h),vVarcosttech(tech,block0h)))
 	+ pWeightblock1h*(sum((egu,block1h),vVarcost(egu,block1h))+sum((tech,block1h),vVarcosttech(tech,block1h)))
@@ -322,6 +337,14 @@ co2Ems.. vCO2emsannual =e= pWeightblock0h*(sum((egu,block0h),vCO2ems(egu,block0h
 	+ pWeightblock4h*(sum((egu,block4h),vCO2ems(egu,block4h))+sum((tech,block4h),vCO2emstech(tech,block4h)))
 	+ pWeightblockpeaknetramp5h*(sum((egu,blockpeaknetramp5h),vCO2ems(egu,blockpeaknetramp5h))+sum((tech,blockpeaknetramp5h),vCO2emstech(tech,blockpeaknetramp5h)))
 	+ pWeightblock6h*(sum((egu,block6h),vCO2ems(egu,block6h))+sum((tech,block6h),vCO2emstech(tech,block6h)));
+
+limitHydroGenblock0h(z)..sum((hydroegu,block0h)$[pGenzone(hydroegu)=ORD(z)],vGen(hydroegu,block0h)) =l= pMaxgenhydroblock0h(z);
+limitHydroGenblock1h(z)..sum((hydroegu,block1h)$[pGenzone(hydroegu)=ORD(z)],vGen(hydroegu,block1h)) =l= pMaxgenhydroblock1h(z);
+limitHydroGenblockpeaktotal2h(z)..sum((hydroegu,blockpeaktotal2h)$[pGenzone(hydroegu)=ORD(z)],vGen(hydroegu,blockpeaktotal2h)) =l= pMaxgenhydroblockpeaktotal2h(z);
+limitHydroGenblockpeaknet3h(z)..sum((hydroegu,blockpeaknet3h)$[pGenzone(hydroegu)=ORD(z)],vGen(hydroegu,blockpeaknet3h)) =l= pMaxgenhydroblockpeaknet3h(z);
+limitHydroGenblock4h(z)..sum((hydroegu,block4h)$[pGenzone(hydroegu)=ORD(z)],vGen(hydroegu,block4h)) =l= pMaxgenhydroblock4h(z);
+limitHydroGenblockpeaknetramp5h(z)..sum((hydroegu,blockpeaknetramp5h)$[pGenzone(hydroegu)=ORD(z)],vGen(hydroegu,blockpeaknetramp5h)) =l= pMaxgenhydroblockpeaknetramp5h(z);
+limitHydroGenblock6h(z)..sum((hydroegu,block6h)$[pGenzone(hydroegu)=ORD(z)],vGen(hydroegu,block6h)) =l= pMaxgenhydroblock6h(z);
 
 rampUpblock0h(egu,block0h)$[ORD(block0h)>1].. vGen(egu,block0h)+vRegup(egu,block0h)+vFlex(egu,block0h)+vCont(egu,block0h) - vGen(egu,block0h-1) =l= 
                   pRamprate(egu);

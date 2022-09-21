@@ -3,13 +3,13 @@
 *$offlisting
 *$offsymxref offsymlist
 Options
-         optcr = 1E-3
+         optcr = 1E-2
          reslim = 100000
                  threads = 0
          solvelink = 5
-*         limcol = 999
-*         limrow = 999
-*         solprint = silent
+         limcol = 999
+         limrow = 999
+         solprint = silent
          ;
 
 $include CESharedFeatures.gms
@@ -53,7 +53,7 @@ Equations
 
 ******************CALCULATE COSTS (OBJ FUNC)**********
 *Objective: minimize sum of capacity variables
-objfunc..                vZannual =e= sum(nonstoragetech,vN(nonstoragetech));
+objfunc..                vZannual =e= sum(nonstoragetech,vN(nonstoragetech)*pWeighttech(nonstoragetech));
 ******************************************************
 
 ******************INITIAL OBJECTIVE FUNCTION LIMIT**********

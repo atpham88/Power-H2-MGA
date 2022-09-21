@@ -3,21 +3,30 @@
 import csv, os, copy, operator, random, pandas as pd, numpy as np
 from AuxFuncs import *
 
-def setupGeneratorFleet(interconn,startYear,fuelPrices,stoEff,stoMinSOC,stoFTLabels): #statesForAnalysis
-    #Import NEEDS (base fleet) and strip down to 1 fuel
+def setupGeneratorFleet(interconn, startYear, fuelPrices, stoEff, stoMinSOC, stoFTLabels): #statesForAnalysis
+    # Import NEEDS (base fleet) and strip down to 1 fuel
     genFleet = pd.read_excel(os.path.join('Data','needs_v6_06-30-2020.xlsx'),sheet_name='NEEDS v6_active',header=0)
     genFleet['FuelType'] = genFleet['Modeled Fuels'].str.split(',', expand=True)[0]
-    #Import and extract data from EIA 860
-    genFleet = addEIA860Data(genFleet,interconn,stoFTLabels) 
-    #Add parameters
+    # Import and extract data from EIA 860
+    genFleet = addEIA860Data(genFleet, interconn, stoFTLabels)
+    # Model solar thermal facilities as solar PV
+    if 'Solar Thermal' in genFleet['PlantType'].unique():
+        print('Modeling all solar thermal facilities as solar PV')
+        genFleet.loc[genFleet['PlantType'] == 'Solar Thermal', 'PlantType'] = 'Solar PV'
+
+    # Add parameters
     genFleet.loc[genFleet['FuelType'].isin(stoFTLabels),'Efficiency'] = stoEff
     genFleet.loc[genFleet['FuelType'].isin(stoFTLabels),'Minimum Energy Capacity (MWh)'] = stoMinSOC
     genFleet = addFuelPrices(genFleet,startYear,fuelPrices)
     genFleet = addEmissionsRates(genFleet) 
     return genFleet
 
-def compressAndAddSizeDependentParams(genFleet,compressFleet,regElig,contFlexInelig,regCostFrac,stoPTLabels):
-    if compressFleet == True: genFleet = performFleetCompression(genFleet)
+
+def compressAndAddSizeDependentParams(genFleet,compressFleet, regElig, contFlexInelig, regCostFrac, stoFTLabels, stoPTLabels):
+    if compressFleet == True:
+        genFleet = compressNonStorageUnits(genFleet)
+        genFleet = compressStorageUnits(genFleet,stoFTLabels)
+
     genFleet = addUnitCommitmentParameters(genFleet,'PhorumUCParameters.csv') 
     genFleet = addUnitCommitmentParameters(genFleet,'StorageUCParameters.csv')
     genFleet = addRandomOpCostAdder(genFleet)
@@ -32,7 +41,7 @@ def compressAndAddSizeDependentParams(genFleet,compressFleet,regElig,contFlexIne
     return genFleet
 
 ################################################################################
-def addEIA860Data(genFleet,interconn,stoFTLabels,missingStoDuration=4): #statesForAnalysis
+def addEIA860Data(genFleet,interconn,stoFTLabels,missingStoDuration=4,missingPSStoDuration=8): #statesForAnalysis
     gens,plants,storage = importEIA860()
     genFleet = genFleet.merge(plants[['Plant Code','Latitude','Longitude']],left_on='ORIS Plant Code',right_on='Plant Code',how='left')
     genFleet = fillMissingCoords(genFleet)
@@ -48,7 +57,11 @@ def addEIA860Data(genFleet,interconn,stoFTLabels,missingStoDuration=4): #statesF
     stoRowsMissingMatch = genFleet.loc[(genFleet['FuelType'].isin(stoFTLabels)) & (genFleet['Nameplate Energy Capacity (MWh)'].isnull())]
     genFleet.loc[stoRowsMissingMatch.index,'Nameplate Energy Capacity (MWh)'] = genFleet['Capacity (MW)'] * missingStoDuration
     genFleet.loc[stoRowsMissingMatch.index,'Maximum Charge Rate (MW)'] = genFleet['Capacity (MW)']
-    genFleet.loc[stoRowsMissingMatch.index,'Maximum Discharge Rate (MW)'] = genFleet['Capacity (MW)']
+    genFleet.loc[stoRowsMissingMatch.index, 'Nameplate Energy Capacity (MWh)'] = genFleet['Capacity (MW)'] * missingStoDuration
+    # Pumped hydropower (as of Y2018 release) is not included in storage dataset. Use 8 hour duration for them.
+    genFleet.loc[genFleet['FuelType'] == 'Pumped Storage', 'Nameplate Energy Capacity (MWh)'] = genFleet['Capacity (MW)'] * missingPSStoDuration
+    genFleet['Nameplate Energy Capacity (MWh)'] = genFleet['Nameplate Energy Capacity (MWh)'].astype(float)
+
     return genFleet
 
 #Fill generators with missing lat/lon (not in EIA 860) w/ coords from other plants in same county or state
@@ -71,12 +84,15 @@ def importEIA860():
     gens860 = pd.read_excel(os.path.join(dir860,'3_1_Generator_Y2018.xlsx'),sheet_name='Operable',header=1)
     sto860 = pd.read_excel(os.path.join(dir860,'3_4_Energy_Storage_Y2018.xlsx'),sheet_name='Operable',header=1)
     plants860 = pd.read_excel(os.path.join(dir860,'2___Plant_Y2018.xlsx'),sheet_name='Plant',header=1)
+    # Remove solar thermal from storage (no storage values given)
+    sto860 = sto860.loc[sto860['Technology'] != 'Solar Thermal with Energy Storage']
+
     return gens860,plants860,sto860
 ################################################################################
 
 ################################################################################
 #COMPRESS FLEET BY COMBINING SMALL UNITS BY REGION
-def performFleetCompression(genFleetAll):
+def compressNonStorageUnits(genFleetAll):
     maxSizeToCombine,maxCombinedSize,firstYr,lastYr,stepYr = 10000,50000,1975,2026,10
     genFleetAll['FuelType2'] = genFleetAll['FuelType']
     genFleetAll.loc[genFleetAll["PlantType"] == "Combined Cycle", "FuelType2"] = "Combined Cycle"
@@ -87,7 +103,7 @@ def performFleetCompression(genFleetAll):
     rowsToDrop,rowsToAdd = list(),list()
     for region in genFleetAll['region'].unique():
         genFleet = genFleetAll.loc[genFleetAll['region']==region]
-        for fuel in ['Distillate Fuel Oil','Natural Gas','Combined Cycle','Residual Fuel Oil','Bituminous','Subbituminous','Lignite']:
+        for fuel in ['Distillate Fuel Oil','Natural Gas','Combined Cycle','Residual Fuel Oil','Bituminous','Subbituminous','Lignite']: #'Geothermal'
             genFleetFuel = genFleet.loc[genFleet['FuelType2'] == fuel]
             for hr in genFleetFuel['hrGroup'].unique():
                 startHrCap = genFleetFuel.groupby(['Heat Rate (Btu/kWh)']).sum()['Capacity (MW)']
@@ -127,7 +143,7 @@ def performFleetCompression(genFleetAll):
     rowsToDrop2, rowsToAdd2 = list(), list()
     for region in genFleetAll['region'].unique():
         genFleet = genFleetAll.loc[genFleetAll['region'] == region]
-        for fuel in ['Landfill Gas','MSW','Biomass','Non-Fossil Waste','Fossil Waste']:
+        for fuel in ['Landfill Gas','MSW','Biomass','Non-Fossil Waste','Fossil Waste','Geothermal']:
             fuelRows = genFleet.loc[(genFleet['FuelType'] == fuel) & (genFleet['Capacity (MW)'] < maxSizeToCombine) & (genFleet['PlantType'] != 'Combined Cycle')]
             yearIntervals = [yr for yr in range(firstYr, lastYr, stepYr)]
             for endingYear in yearIntervals:
@@ -165,11 +181,52 @@ def aggregateRows(rowsToCombine):
         newRow[p] = (rowsToCombine[p]*capacWts).sum()
     newRow['Unit ID'] = str(newRow['Unit ID'])+'COMBINED'
     return newRow,rowsToCombine.index
+
+################################################################################
+# Combine all storage types into a single storage unit, ignoring diff storage techs
+def compressStorageUnits(genFleetAll,stoFTLabels):
+    #Compile total values to check fleet at end
+    startRegionCap = genFleetAll.groupby(['region']).sum()['Capacity (MW)']
+    stoFleet = genFleetAll.loc[genFleetAll['FuelType'].isin(stoFTLabels)]
+    startEStoCap = stoFleet.groupby(['region']).sum()['Nameplate Energy Capacity (MWh)']
+    startStoCap = stoFleet.groupby(['region']).sum()['Capacity (MW)']
+    #Compress storage rows
+    rowsToDrop,rowsToAdd = list(), list()
+    for region in genFleetAll['region'].unique():
+        stoRegionRows = stoFleet.loc[stoFleet['region'] == region]
+        if stoRegionRows.shape[0] > 0:
+            newRow, idxsToDrop = aggregateStoRows(stoRegionRows)
+            rowsToDrop.extend(idxsToDrop),rowsToAdd.append(newRow)
+    genFleetAll.drop(index=rowsToDrop, inplace=True)
+    genFleetAll = genFleetAll.append(pd.DataFrame(rowsToAdd))
+    genFleetAll.reset_index(drop=True, inplace=True)
+    #Check total values haven't changed
+    endRegionCap = genFleetAll.groupby(['region']).sum()['Capacity (MW)']
+    stoFleet = genFleetAll.loc[genFleetAll['FuelType'].isin(stoFTLabels)]
+    endEStoCap = stoFleet.groupby(['region']).sum()['Nameplate Energy Capacity (MWh)']
+    endStoCap = stoFleet.groupby(['region']).sum()['Capacity (MW)']
+    assert(startRegionCap.astype(int).equals(endRegionCap.astype(int)))
+    assert(startEStoCap.astype(int).equals(endEStoCap.astype(int)))
+    assert(startStoCap.astype(int).equals(endStoCap.astype(int)))
+    return genFleetAll
+
+def aggregateStoRows(rowsToCombine):
+    rowsToCombine = pd.DataFrame(rowsToCombine)
+    capacWts = rowsToCombine['Capacity (MW)']/rowsToCombine['Capacity (MW)'].sum()
+    newRow = rowsToCombine.iloc[0].copy() #inherit properties from first row
+    newRow['Capacity (MW)'] = rowsToCombine['Capacity (MW)'].sum()
+    newRow['Maximum Charge Rate (MW)'] = rowsToCombine['Maximum Charge Rate (MW)'].sum()
+    newRow['Maximum Discharge Rate (MW)'] = rowsToCombine['Maximum Discharge Rate (MW)'].sum()
+    newRow['Nameplate Energy Capacity (MWh)'] = rowsToCombine['Nameplate Energy Capacity (MWh)'].sum()
+    newRow['On Line Year'] = rowsToCombine['On Line Year'].median()
+    for p in ['CO2EmRate(lb/MMBtu)','Heat Rate (Btu/kWh)']: newRow[p] = 0
+    newRow['Unit ID'] = str(newRow['Unit ID'])+'COMBINED'
+    return newRow,rowsToCombine.index
 ################################################################################
 
 ################################################################################
-#ADD VARIABLE AND FIXED O&M COSTS
-#Based on plant type
+# ADD VARIABLE AND FIXED O&M COSTS
+# Based on plant type
 def addVOMandFOM(genFleet,stoPTLabels):
     vomData = pd.read_csv(os.path.join('Data','VOMValues.csv'),index_col=0)
     genFleet = genFleet.merge(vomData[['FOM(2012$/MW/yr)','VOM(2012$/MWh)']],left_on='PlantType',right_index=True,how='left')
@@ -181,8 +238,8 @@ def addVOMandFOM(genFleet,stoPTLabels):
 ################################################################################
 
 ################################################################################
-#ADD UNIT COMMITMENT PARAMETERS
-#Based on fuel and plant type; data from PHORUM
+# ADD UNIT COMMITMENT PARAMETERS
+# Based on fuel and plant type; data from PHORUM
 def addUnitCommitmentParameters(genFleet,fname):
     ucData = readCSVto2dList(os.path.join('Data',fname))
     for ucHeader in ['MinDownTime(hrs)','RampRate(MW/hr)','StartCost($)','MinLoad(MWh)']:
@@ -219,16 +276,16 @@ def getMatchingPhorumValue(ucData,fuel,plantType,size,paramName):
             (phorumLowerSizes[idx] <= size and phorumUpperSizes[idx] > size)):
             return float(phorumValues[idx])
 
-#Return dictionary of fleet fuel : UC fuel
+# Return dictionary of fleet fuel : UC fuel
 def mapFuels():
     return {'Bituminous': 'Coal', 'Petroleum Coke': 'Pet. Coke',
-        'Subbituminous': 'Coal', 'Lignite': 'Coal', 'Natural Gas': 'NaturalGas',
-        'Distillate Fuel Oil': 'Oil', 'Hydro': 'Hydro', 'Landfill Gas': 'LF Gas',
-        'Biomass': 'Biomass', 'Solar': 'Solar', 'Non-Fossil Waste': 'Non-Fossil',
-        'MSW': 'MSW', 'Pumped Storage': 'Hydro', 'Residual Fuel Oil': 'Oil',
-        'Wind': 'Wind', 'Nuclear Fuel': 'Nuclear', 'Coal': 'Coal','Energy Storage':'Storage',
-        'Hydrogen':'Storage','Storage':'Storage','Fossil Waste':'Oil','Tires':'Non-Fossil',
-        'Waste Coal':'Coal'}
+            'Subbituminous': 'Coal', 'Lignite': 'Coal', 'Natural Gas': 'NaturalGas',
+            'Distillate Fuel Oil': 'Oil', 'Hydro': 'Hydro', 'Landfill Gas': 'LF Gas',
+            'Biomass': 'Biomass', 'Solar': 'Solar', 'Non-Fossil Waste': 'Non-Fossil',
+            'MSW': 'MSW', 'Pumped Storage': 'Hydro', 'Residual Fuel Oil': 'Oil',
+            'Wind': 'Wind', 'Nuclear Fuel': 'Nuclear', 'Coal': 'Coal', 'Energy Storage': 'Storage',
+            'Hydrogen': 'Storage', 'Storage': 'Storage', 'Fossil Waste': 'Oil', 'Tires': 'Non-Fossil',
+            'Waste Coal': 'Coal', 'Geothermal': 'Geothermal'}
     #EIA860 fuels
     # fleetFuelToPhorumFuelMap = {'BIT':'Coal','PC':'Pet. Coke','SGC':'Coal',
     #         'SUB':'Coal','LIG':'Coal','RC':'Coal','NG':'NaturalGas','OG':'NaturalGas',
@@ -243,7 +300,7 @@ def mapHeadersToPhorumParamNames():
 ################################################################################
 
 ################################################################################
-#ADD FUEL PRICES
+# ADD FUEL PRICES
 def addFuelPrices(genFleet,currYear,fuelPrices):
     if currYear > 2050: currYear = 2050
     fuelPrices = fuelPrices.loc[currYear] if currYear in fuelPrices.index else fuelPrices.iloc[-1]
@@ -259,13 +316,16 @@ def mapFuelsToAEOPrices():
 ################################################################################
 
 ################################################################################
-#ADD RANDOM OP COST ADDER TO FLEET IN NEW COLUMN
-#Add to all fuel types. Use value of 0.05 - makes up ~0.03% on average of fleet. 
-#Max addition to op cost of gen in fleet is 0.19%.  
-def addRandomOpCostAdder(genFleet,ocAdderMin=0,ocAdderMax=0): #ocAdderMax=0.05
+# ADD RANDOM OP COST ADDER TO FLEET IN NEW COLUMN
+#This function deprecated as of 9/19/22 by Michael Craig - increases computation time.
+#If someone chooses to add at later date, note that new generators added to fleet by CE model
+#do not have a random op cost added. (See ProcessCEResults.py, addNewTechRowToFleet function).
+#If use value of 0.05, max addition to op cost of gen in fleet is 0.19%.
+def addRandomOpCostAdder(genFleet,ocAdderMin=0,ocAdderMax=0):
     random.seed()
     genFleet['RandOpCostAdder($/MWh)'] = pd.Series(np.random.uniform(ocAdderMin,ocAdderMax,genFleet.shape[0]))
     return genFleet
+
 ################################################################################
 
 ################################################################################

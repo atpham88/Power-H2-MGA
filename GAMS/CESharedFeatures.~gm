@@ -49,8 +49,8 @@ Parameters
                  pPERatio(ststoragetech)
 *SIZE PARAMETERS [GW]
          pCapactech(tech)                nameplate capacity of new builds for cost calculations [GW]
-         pMaxZCap(tech)                  max capacity allowed to be built by zone [MW]
-         pWeight(tech)                   Coefficients of capacity investment variables for MGA (initial = 1) 
+         pMaxZCaptech(tech)                  max capacity allowed to be built by zone [MW]
+         pWeighttech(tech)                   Coefficients of capacity investment variables for MGA (initial = 1)
 *HEAT RATES [MMBtu/GWh]
          pHrtech(tech)                   heat rate of new builds [MMBtu per GWh]
 *COST PARAMETERS
@@ -102,7 +102,7 @@ Parameters
 $if not set gdxincname $abort 'no include file name for data file provided'
 $gdxin %gdxincname%
 $load ststorageegu, ltstorageegu, tech, dacstech, thermaltech, CCStech, nucleartech, CCtech, renewtech, solartech, windtech, storagetech, ststoragetech, ltstoragetech, peakH
-$load pNMaxWind, pNMaxSolar, pNMaxNuclear, pNMaxCC, pNMaxCCS, pNMaxDACS, pPMaxSto, pEMaxSto, pCapactech, pHrtech, pOpcosttech, pMaxZCap, pWeight
+$load pNMaxWind, pNMaxSolar, pNMaxNuclear, pNMaxCC, pNMaxCCS, pNMaxDACS, pPMaxSto, pEMaxSto, pCapactech, pHrtech, pOpcosttech, pMaxZCaptech, pWeighttech
 $load pFom, pOcc, pPowOcc, pEneOcc, pRampratetech, pCO2emratetech
 $load pEfficiencytech
 $load pCO2emcap, pCf, pR, pLife, pLifeline

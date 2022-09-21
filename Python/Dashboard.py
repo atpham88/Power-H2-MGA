@@ -31,27 +31,38 @@ def main():
                                                         # 4 = limited hydrogen storage,
                                                         # 5 = limited transmission
 
+    # ### PLANNING SYSTEM SCENARIO
+    emissionSystem = 'NetZero'                          # "NetZero" = net zero,
+                                                        # "Negative" = negative emission system
+
+    # ### NEGATIVE EMISSION SCENARIO
+    planNESystem = 2050                                 # Year that negative emission system is planned
+
     # ### RUNNING ON SC OR LOCAL
     runOnSC = False                                     # whether running on supercomputer
     if runOnSC == False:
         projectPath = "C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\Power-H2_MGA\\Model\\Python\\"
     else:
-        projectPath = "/home/anph/projects/Power-H2_MGA/Model/Python/"
+        projectPath = "/home/anph/projects/PH2/Model/Python/"
 
     co2EmsCapInFinalYear = 0                            # cap on co2 emissions in final year of CE
     yearIncDACS = 2060                                  # year to include DACS - set beyond end period if don't want DACS
 
     # ### CE AND UCED/ED OPTIONS
     compressFleet = True
+    transmissionEff = 0.95  # efficiency of transmission between zones (https://ars.els-cdn.com/content/image/1-s2.0-S2542435120305572-mmc1.pdf)
 
     # ### CE OPTIONS
     runCE, ceOps = True, 'ED'                           # ops are 'ED' or 'UC' (econ disp or unit comm constraints)
     numBlocks, daysPerBlock, daysPerPeak = 4, 2, 3      # num rep time blocks, days per rep block, and days per peak block in CE
     if modelType == 'CE':
-        startYear, endYear, yearStepCE = 2020, 2051, 5
+        startYear, endYear, yearStepCE = 2020, 2026, 5
     elif modelType == 'MGA':
         startYear, endYear, yearStepCE = 2020, 2051, 30
 
+    mulStep = (yearStepCE * 2 < (endYear - startYear))
+
+    removeHydro = False                                 # whether to remove hydropower from fleet & subtract generation from demand, or to include hydro as dispatchable in CE w/ gen limit
     greenField = False                                  # whether to run greenField (set to True) or brownfield (False)
     includeRes = False                                  # whether to include reserves in CE & dispatch models (if False, multiplies reserve timeseries by 0)
     stoInCE, seasStoInCE = True, True                   # whether to allow new storage, new seasonal storage in CE model
@@ -70,10 +81,11 @@ def main():
     # ### MGA OPTIONS:
     maxIter = 100                                       # Maximum number of iterations
 
-    # ### LIMITS ON TECHNOLOGY DEPLOYMENT
-    maxCapPerTech = {'Wind': 2000 * reDownFactor, 'Solar': 17000 * reDownFactor, 'Thermal': 999999, 'Combined Cycle': 999999,
-                     'Storage': 999999, 'Dac': -9999999, 'CCS': 999999, 'Nuclear': 999999, 'Battery Storage': 999999,
-                     'Hydrogen': 999999, 'Transmission': 1000000000}  # max added MW per CE run (W&S by cell)
+    # ### LIMITS ON TECHNOLOGY DEPLOYMENT (max added MW per CE run (W&S by cell))
+    # wind: 2000, solar: 17000
+    maxCapPerTech = {'Wind': 20000 * reDownFactor, 'Solar': 170000 * reDownFactor, 'Thermal': 999999, 'Combined Cycle': 50000,
+                     'Storage': 100000, 'Dac': -9999999, 'CCS': 999999, 'Nuclear': 999999, 'Battery Storage': 10000,
+                     'Hydrogen': 10000, 'Transmission': 10000}  # max added MW per CE run (W&S by cell)
 
     for item in runningStage:
         rStage = item
@@ -81,21 +93,21 @@ def main():
         if rStage == 'CE':
             objLimit = 0
             (resultsCE, mgaWeight,
-             newGenspD, iterationLast) = masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDemand, elecDemandScen, reSourceMERRA, fixDays,
-                                                        buildLimitsCase, runOnSC, co2EmsCapInFinalYear, yearIncDACS, compressFleet, runCE, ceOps, numBlocks, daysPerBlock,
-                                                        daysPerPeak, startYear, endYear, yearStepCE, greenField, includeRes, stoInCE, seasStoInCE, retireByAge,
-                                                        planningReserveMargin, retirementCFCutoff, discountRate, ptEligRetCF, incITC, incNuc, runFirstYear, ucOrED,
-                                                        useCO2Price, maxCapPerTech, reDownFactor, annualDemandGrowth, iteration, mgaWeight, newGenspD, iterationLast)
+             newGenspD, iterationLast) = masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDemand, elecDemandScen, reSourceMERRA, fixDays, planNESystem,
+                                                        emissionSystem, buildLimitsCase, runOnSC, co2EmsCapInFinalYear, yearIncDACS, compressFleet, runCE, ceOps, numBlocks,
+                                                        daysPerBlock, daysPerPeak, startYear, endYear, yearStepCE, greenField, includeRes, stoInCE, seasStoInCE, retireByAge,
+                                                        planningReserveMargin, retirementCFCutoff, discountRate, ptEligRetCF, incITC, incNuc, runFirstYear, ucOrED, mulStep, removeHydro,
+                                                        useCO2Price, maxCapPerTech, reDownFactor, annualDemandGrowth, iteration, mgaWeight, newGenspD, iterationLast, transmissionEff)
         elif rStage == 'MGA':
             fval = pd.read_csv(projectPath + resultsCE + "\\vZannualCE" + str(endYear-1) + ".csv", header=None)
             objLimit = fval.iloc[0,0]*1.1
             while iteration <= maxIter:
                 (resultsMGA, mgaWeight,
-                 newGenspD, iterationLast) = masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDemand, elecDemandScen, reSourceMERRA, fixDays,
-                                                            buildLimitsCase, runOnSC, co2EmsCapInFinalYear, yearIncDACS, compressFleet, runCE, ceOps, numBlocks, daysPerBlock,
-                                                            daysPerPeak, startYear, endYear, yearStepCE, greenField, includeRes, stoInCE, seasStoInCE, retireByAge,
-                                                            planningReserveMargin, retirementCFCutoff, discountRate, ptEligRetCF, incITC, incNuc, runFirstYear, ucOrED,
-                                                            useCO2Price, maxCapPerTech, reDownFactor, annualDemandGrowth, iteration, mgaWeight, newGenspD, iterationLast)
+                 newGenspD, iterationLast) = masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDemand, elecDemandScen, reSourceMERRA, fixDays, planNESystem,
+                                                            emissionSystem,buildLimitsCase, runOnSC, co2EmsCapInFinalYear, yearIncDACS, compressFleet, runCE, ceOps, numBlocks,
+                                                            daysPerBlock, daysPerPeak, startYear, endYear, yearStepCE, greenField, includeRes, stoInCE, seasStoInCE, retireByAge,
+                                                            planningReserveMargin, retirementCFCutoff, discountRate, ptEligRetCF, incITC, incNuc, runFirstYear, ucOrED, mulStep, removeHydro,
+                                                            useCO2Price, maxCapPerTech, reDownFactor, annualDemandGrowth, iteration, mgaWeight, newGenspD, iterationLast, transmissionEff)
                 if iteration == iterationLast:
                     break
                 else:

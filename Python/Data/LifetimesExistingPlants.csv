@@ -6,13 +6,13 @@ Combined Cycle,55
 Combined Cycle CCS,55
 Combustion Turbine,30
 Fuel Cell,10
-Nuclear,100
+Nuclear,999
 Biomass,40
 Wind,30
 Solar PV,20
 Geothermal,30
 Municipal Solid Waste,40
-Hydro,40
+Hydro,999
 Pumped Storage,40
 Non-Fossil Waste,40
 O/G Steam,55

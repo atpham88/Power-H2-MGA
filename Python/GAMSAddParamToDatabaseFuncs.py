@@ -34,6 +34,7 @@ def addGenParams(db, df, genSet, mwToGW, lbToShortTon, zoneOrder, newTechs=False
     add1dParam(db, getGenParamDict(df, 'Capacity (MW)', 1 / mwToGW), genSet, df['GAMS Symbol'], 'pCapac' + techLbl)
     # Generator zone
     add1dParam(db, getZonalParamDict(df, zoneOrder), genSet, df['GAMS Symbol'], 'pGenzone' + techLbl)
+
     # Zonal max cap investments allowed:
     if newTechs==True:
         add1dParam(db, getGenParamDict(df, 'Max Zonal Cap'), genSet, df['GAMS Symbol'], 'pMaxZCap' + techLbl)
@@ -94,11 +95,13 @@ def addSpinReserveEligibility(db, df, genSet, newTechs=False):
 
 
 ##### ADD EXISTING LINE PARAMETERS
-def addLineParams(db, lineLimits, lineSet, zoneOrder, mwToGW):
-    # Transmission line limits
-    add1dParam(db, pd.Series(lineLimits['AC'].values.astype(float) / mwToGW, index=lineLimits['GAMS Symbol']).to_dict(), lineSet, lineLimits['GAMS Symbol'], 'pLinecapac')
-    # Transmission line sources & sinks
-    addLineSourceSink(db, lineLimits, lineSet, zoneOrder)
+def addLineParams(db,lineLimits,transmissionEff,lineSet,zoneOrder,mwToGW):
+    #Transmission line limits
+    add1dParam(db,pd.Series(lineLimits['TotalCapacity'].values.astype(float)/mwToGW,index=lineLimits['GAMS Symbol']).to_dict(),lineSet,lineLimits['GAMS Symbol'],'pLinecapac')
+    #Transmission efficiency
+    add0dParam(db,'pTransEff',transmissionEff)
+    #Transmission line sources & sinks
+    addLineSourceSink(db,lineLimits,lineSet,zoneOrder)
 
 
 def addLineSourceSink(db, df, lineSet, zoneOrder, techLbl=''):
@@ -138,7 +141,7 @@ def addDiscountRateParam(db, discountRate):
 
 
 ##### INITIAL SOC IN FIRST BLOCK FOR STORAGE (GWh)
-def addStoInitSOCCE(db, df, stoSet, stoSymbols, mwToGW, blocks, seasSto, initSOCFraction, newTechs=False):
+def addStoInitSOCCE(db, df, stoSet, stoSymbols, mwToGW, initSOCFraction, newTechs=False):
     techLbl = 'tech' if newTechs else ''
     df = df.loc[df['GAMS Symbol'].isin(stoSymbols)]
     initSOCs = df['PlantType'].map(initSOCFraction)
@@ -198,82 +201,34 @@ def addMaxNewBuilds(db, df, thermalSet, stoTechSet, dacsSet, CCSSet, maxCapPerTe
     ft = 'DAC'
     techs = df.loc[df['FuelType'] == ft]
     techs.index = techs['GAMS Symbol']
+
     maxBuilds = np.ceil(maxCapPerTech[ft.capitalize()] / techs['Capacity (MW)']).to_dict()
     add1dParam(db, maxBuilds, dacsSet, techs['GAMS Symbol'], 'pNMaxDACS')
     # Storage. Use positive continuous variable for added power & energy separately,
     # so ignore capacity & set upper P & E bounds.
-
-    # Hydrogen
-    pt = 'Hydrogen'
-    genCaps = df.loc[df['PlantType'] == pt, 'Capacity (MW)']
-    maxPCapH2 = np.ceil(maxCapPerTech[pt] / mwToGW)
-    maxECapH2 = maxPCapH2 * 2880
-    add0dParam(db, 'pPMaxH2Sto', maxPCapH2)
-    add0dParam(db, 'pEMaxH2Sto', maxECapH2)
-
-    # Battery
-    pt = 'Battery Storage'
-    genCaps = df.loc[df['PlantType'] == pt, 'Capacity (MW)']
-    maxPCapBat = np.ceil(maxCapPerTech[pt] / mwToGW)
-    maxECapBat = maxPCapBat * 4
-    add0dParam(db, 'pPMaxBatSto', maxPCapBat)
-    add0dParam(db, 'pEMaxBatSto', maxECapBat)
-
-    # maxPCapStorage = pd.Series({'GAMS Symbol': 0, 'Battery Storage': maxPCapBat, 'Hydrogen': maxPCapH2})
-    # maxECapStorage = pd.Series({'GAMS Symbol': 0, 'Battery Storage': maxECapBat, 'Hydrogen': maxECapH2})
-
-    if interconn == 'EI':
-        maxPCapStorage = pd.Series({'GAMS Symbol': 0, 'Battery StorageSERC': maxPCapBat, 'HydrogenSERC': maxPCapH2,
-                                    'Battery StorageNY': maxPCapBat, 'HydrogenNY': maxPCapH2,
-                                    'Battery StorageNE': maxPCapBat, 'HydrogenNE': maxPCapH2,
-                                    'Battery StorageMISO': maxPCapBat, 'HydrogenMISO': maxPCapH2,
-                                    'Battery StoragePJM': maxPCapBat, 'HydrogenPJM': maxPCapH2,
-                                    'Battery StorageSPP': maxPCapBat, 'HydrogenSPP': maxPCapH2})
-
-        maxECapStorage = pd.Series({'GAMS Symbol': 0, 'Battery StorageSERC': maxECapBat, 'HydrogenSERC': maxECapH2,
-                                    'Battery StorageNY': maxECapBat, 'HydrogenNY': maxECapH2,
-                                    'Battery StorageNE': maxECapBat, 'HydrogenNE': maxECapH2,
-                                    'Battery StorageMISO': maxECapBat, 'HydrogenMISO': maxECapH2,
-                                    'Battery StoragePJM': maxECapBat, 'HydrogenPJM': maxECapH2,
-                                    'Battery StorageSPP': maxECapBat, 'HydrogenSPP': maxECapH2})
-
-        pt = 'storage'
-        techs = df.loc[df['ThermalOrRenewableOrStorage'] == pt]
-        techs.index = techs['GAMS Symbol']
-        maxPCap = pd.Series(maxCapPerTech[pt.capitalize()] / mwToGW, index=techs['GAMS Symbol'])
-        # add1dParam(db,maxPCap.to_dict(),stoTechSet,techs['GAMS Symbol'],'pPMaxSto')
-        maxECap = maxPCap * (techs['Nameplate Energy Capacity (MWh)'] / techs['Capacity (MW)'])
-        # add1dParam(db,maxECap,stoTechSet, techs['GAMS Symbol'],'pEMaxSto')
-        add1dParam(db, maxPCapStorage.to_dict(), stoTechSet, techs['GAMS Symbol'], 'pPMaxSto')
-        add1dParam(db, maxECapStorage.to_dict(), stoTechSet, techs['GAMS Symbol'], 'pEMaxSto')
-    elif interconn == 'ERCOT':
-        pt = 'storage'
-        techs = df.loc[df['ThermalOrRenewableOrStorage']==pt]
-        techs.index = techs['GAMS Symbol']
-        maxPCap = pd.Series(maxCapPerTech[pt.capitalize()]/mwToGW,index=techs['GAMS Symbol'])
-        add1dParam(db,maxPCap.to_dict(),stoTechSet,techs['GAMS Symbol'],'pPMaxSto')
-        maxECap = maxPCap*(techs['Nameplate Energy Capacity (MWh)']/techs['Capacity (MW)'])
-        add1dParam(db,maxECap,stoTechSet,techs['GAMS Symbol'],'pEMaxSto')
-
+    ft = 'Energy Storage'
+    techs = df.loc[df['FuelType'] == ft]
+    techs.index = techs['GAMS Symbol']
+    techs['Max Capacity (MW)'] = techs['PlantType'].map(maxCapPerTech)
+    peRatio = techs['Nameplate Energy Capacity (MWh)'] / techs['Capacity (MW)']
+    maxESto = peRatio * techs['Max Capacity (MW)'] / mwToGW
+    add1dParam(db, (techs['Max Capacity (MW)'] / mwToGW).to_dict(), stoTechSet, techs['GAMS Symbol'], 'pPMaxSto')
+    add1dParam(db, maxESto.to_dict(), stoTechSet, techs['GAMS Symbol'], 'pEMaxSto')
 
 ##### ADD NEW LINE PARAMETERS
-def addNewLineParams(db, lineDists, lineCosts, lineSet, maxCapPerTech, buildLimitsCase, zoneOrder, interconn, lineLife=60):
+def addNewLineParams(db, lineDists, lineCosts, lineSet, maxCapPerTech, buildLimitsCase, zoneOrder, interconn, mwToGW, lineLife=60):
     # Transmission costs = $/mw-mile * mw (= $/mw = thousand$/gw)
     if interconn == 'ERCOT':
         cost = pd.Series(lineCosts['Line Cost ($/mw-mile)'].values.astype(float), index=lineCosts['GAMS Symbol'])
         dist = pd.Series(lineDists['AC'].values.astype(float), index=lineDists['GAMS Symbol'])
-    elif interconn == 'EI':
+    elif interconn == 'EI'  or interconn == 'WECC':
         cost = pd.Series(lineCosts['cost($/mw-mile)'].values.astype(float), index=lineCosts['GAMS Symbol'])
         dist = pd.Series(lineDists['dist(mile)'].values.astype(float), index=lineDists['GAMS Symbol'])
     totalCost = cost * dist
     add1dParam(db, totalCost.to_dict(), lineSet, totalCost.index, 'pLinecost')
     # Maximum transmission expansion (GW)
-    maxCapacs = pd.Series(1e9, index=totalCost.index)
-    if buildLimitsCase < 5:
-        add1dParam(db, maxCapacs.to_dict(), lineSet, maxCapacs.index, 'pNMaxLine')
-    elif buildLimitsCase == 5:
-        maxCapacs = pd.Series(maxCapPerTech['Transmission'], index=totalCost.index)
-        add1dParam(db, maxCapacs.to_dict(), lineSet, maxCapacs.index, 'pNMaxLine')
+    maxCapacs = pd.Series(maxCapPerTech['Transmission'], index=totalCost.index) / mwToGW  # convert from MW to GW
+    add1dParam(db, maxCapacs.to_dict(), lineSet, maxCapacs.index, 'pNMaxLine')
     # Lifetime of new lines
     add0dParam(db, 'pLifeline', lineLife)
 
@@ -285,6 +240,12 @@ def addInitialOnOffForEachBlock(db, onOffInitialEachPeriod, genSet):
         onOffBlockDict = onOffInitialEachPeriod[block]
         print(onOffBlockDict)
         add1dParam(db, onOffBlockDict, genSet, [g for g in onOffBlockDict], 'pOnoroffinit' + createHourSubsetName(block))
+
+
+##### ADD TOTAL LIMIT ON HYDROPOWER GENERATION BY BLOCK
+def addHydroGenLimits(db, hydroGenCE, zoneSet, mwToGW):
+    for block in hydroGenCE.index:
+        add1dParam(db,(hydroGenCE.loc[block]/mwToGW).to_dict(),zoneSet,hydroGenCE.columns,'pMaxgenhydro' + createHourSubsetName(block))
 
 
 # ##### ADD FIRM FRACTION FOR EXISTING GENERATORS
@@ -328,6 +289,11 @@ def addReserveParameters(db, contRes, regUpRes, flexRes, rrToRegTime, rrToFlexTi
         add0dParam(db, p, v)
     for p, df in zip(['pRegupreserves', 'pFlexreserves', 'pContreserves'], [regUpRes, flexRes, contRes]):
         add2dParam(db, convert2DTimeseriesDfToDict(df, 1 / mwToGW), zoneSet, hourSet, p)
+
+
+def addResIncParams(db, regUpInc, flexInc, renewTechSet, hourSet):
+    for p, df in zip(['pRegUpReqIncRE', 'pFlexReqIncRE'], [regUpInc, flexInc]):
+        add2dParam(db, convert2DTimeseriesDfToDict(df), renewTechSet, hourSet, p)
 
 
 def addResIncParams(db, regUpInc, flexInc, renewTechSet, hourSet):
@@ -382,10 +348,11 @@ def add1dParam(db, paramDict, idxSet, setSymbols, paramName, paramDescrip=''):
     if len(addedParam.get_symbol_dvs()) > 0: print('Domain violations in ' + paramName)
 
 
-def add2dParam(db, param2dDict, idxSet1, idxSet2, paramName, paramDescrip=''):
-    addedParam = db.add_parameter_dc(paramName, [idxSet1, idxSet2], paramDescrip)
-    for k, v in iter(param2dDict.items()): addedParam.add_record(k).value = float(v)
-    if len(addedParam.get_symbol_dvs()) > 0: print('Domain violations in ' + paramName)
+def add2dParam(db,param2dDict,idxSet1,idxSet2,paramName,paramDescrip=''):
+    addedParam = db.add_parameter_dc(paramName,[idxSet1,idxSet2],paramDescrip)
+    for k,v in iter(param2dDict.items()): addedParam.add_record(k).value = float(v)
+    if len(addedParam.get_symbol_dvs())>0: print('Domain violations in ' + paramName)
+
 
 
 def getGenParamDict(df, param, scalar=1):

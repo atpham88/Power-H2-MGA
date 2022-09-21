@@ -1,0 +1,15 @@
+Python/Data/MERRA/2012_solar_generation_cf.nc
+Python/Data/MERRA/2012_solar_generation_cf_US.nc
+Python/Data/MERRA/2012_wind_generation_cf.nc
+Python/Data/MERRA/2012_wind_generation_cf_US.nc
+Python/Data/RE/solar_cf_2012.csv
+Python/Data/RE/wind_cf_2012.csv
+Python/Data/REEDS/EPHIGH_FlexNONEload_hourly.csv
+Python/Data/REEDS/EPMEDIUM_FlexNONEload_hourly.csv
+Python/Data/REEDS/EPREFERENCE_FlexNONEload_hourly.csv
+GAMS/_gams_py_gjo0.lst
+GAMS/_gams_py_gdb1.gdx
+GAMS/_gams_py_gdb0.gdx
+Python/Results*/
+Python/__pycache__/
+Python/env/

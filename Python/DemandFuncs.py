@@ -16,9 +16,7 @@ def getDemandForFutureYear(demand,annualDemandGrowth,metYear,currYear,electrifie
         demand = importHourlyEFSDemand(currYear,transRegions,elecDemandScen)
     else:
         demandScalar = (1 + annualDemandGrowth)**(currYear - metYear)
-        print(demand)
         for region in demand: demand[region] *= demandScalar
-        print(demand)
         sys.exit('have not tested thsi code section yet')
     return demand
 
@@ -29,6 +27,7 @@ def importHourlyEFSDemand(currYear,transRegions,elecDemandScen):
     dates = pd.date_range('1/1/'+str(currYear)+' 0:00','12/31/' + str(currYear) + ' 23:00',freq='H')
     dates = dates[~((dates.month == 2) & (dates.day == 29))] #ditch leap day
     demand = pd.DataFrame(index=dates)
+
     #Read EFS data
     filename = 'EP' + elecDemandScen + '_FlexNONEload_hourly.csv'
     rawDemand = pd.read_csv(os.path.join('Data','REEDS', filename), delimiter=',',header=0)

@@ -4,7 +4,6 @@
 
 #Inputs: gen fleet (2d list)
 def combineWindSolarStoPlants(genFleet):
-    print('Combining storage facilities in CombinePlants.py')
     for r in genFleet['region'].unique():
         genFleet = combinePlantsByRegion(genFleet,'FuelType','Wind',r)
         genFleet = combinePlantsByRegion(genFleet,'FuelType','Solar',r)

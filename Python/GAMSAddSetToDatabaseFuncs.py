@@ -6,21 +6,24 @@ from GAMSAuxFuncs import *
 
 ########### ADD GENERATOR SETS #################################################
 #Add gen sets & subsets
-def addGeneratorSets(db,genFleet):
-    genSet = addSet(db,genFleet['GAMS Symbol'].tolist(),'egu') 
-    reFTs = ['Wind','Solar']
-    addSet(db,genFleet['GAMS Symbol'].loc[genFleet['FuelType'].isin(reFTs)].tolist(),'renewegu') 
-    for reFT in reFTs: addSet(db,genFleet['GAMS Symbol'].loc[genFleet['FuelType']==reFT].tolist(),reFT.lower()+'egu') 
-    addSet(db,genFleet['GAMS Symbol'].loc[genFleet['PlantType'] == 'DAC'].tolist(),'dacsegu')
+def addGeneratorSets(db, genFleet):
+    genSet = addSet(db, genFleet['GAMS Symbol'].tolist(), 'egu')
+    reFTs = ['Wind', 'Solar', 'Hydro']
+    addSet(db,genFleet['GAMS Symbol'].loc[genFleet['FuelType'].isin(reFTs)].tolist(), 'renewegu')
+    for reFT in reFTs:
+        symbs = genFleet['GAMS Symbol'].loc[genFleet['FuelType'] == reFT]
+        addSet(db, symbs.tolist() if symbs.shape[0] > 0 else [], reFT.lower() + 'egu')
+    addSet(db,genFleet['GAMS Symbol'].loc[genFleet['PlantType'] == 'DAC'].tolist(), 'dacsegu')
     return genSet
 
-def addStoGenSets(db,genFleet):
-    stoSymbols = genFleet['GAMS Symbol'].loc[genFleet['FuelType']=='Energy Storage'].tolist()
-    stoGenSet = addSet(db,stoSymbols,'storageegu') 
-    return stoGenSet,stoSymbols
+def addStoGenSets(db, genFleet, stoFTLabels):
+    stoSymbols = genFleet.loc[genFleet['FuelType'].isin(stoFTLabels), 'GAMS Symbol'].tolist()
+    stoGenSet = addSet(db, stoSymbols, 'storageegu')
+    return stoGenSet, stoSymbols
 
-def addStorageSubsets(db,genFleet):
-    storage = genFleet.loc[genFleet['FuelType']=='Energy Storage']
+
+def addStorageSubsets(db, genFleet, stoFTLabels):
+    storage = genFleet.loc[genFleet['FuelType'].isin(stoFTLabels)]
     addSet(db,storage['GAMS Symbol'].loc[(storage['Nameplate Energy Capacity (MWh)']/storage['Capacity (MW)'] < 30*24)].tolist(),'ststorageegu') 
     addSet(db,storage['GAMS Symbol'].loc[(storage['Nameplate Energy Capacity (MWh)']/storage['Capacity (MW)'] >= 30*24)].tolist(),'ltstorageegu') 
 

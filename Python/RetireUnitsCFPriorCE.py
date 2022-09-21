@@ -14,14 +14,11 @@ def retireUnitsCFPriorCE(genFleet,genFleetPriorCE,retirementCFCutoff,priorCapacE
     if currYear > 2050: currYear = 2050
     #Get which generators from last CE run are still online based on age of this year
     genFleetOnline = getOnlineGenFleet(genFleetPriorCE,currYear)
-    genFleetOnline.to_csv('a' + str(currYear) + '.csv')
 
     #Update online fleet based on economic retirements in last CE run
     currentStatus = genFleet.loc[genFleet['GAMS Symbol'].isin(genFleetOnline['GAMS Symbol'])] 
     currentStatus = currentStatus.loc[currentStatus['Retired'] == False]
-    currentStatus.to_csv('a1' + str(currYear) + '.csv')
     genFleetOnline = genFleetOnline.loc[genFleetOnline['GAMS Symbol'].isin(currentStatus['GAMS Symbol'])]
-    genFleetOnline.to_csv('a2' + str(currYear) + '.csv')
 
     #Get total generation from prior CE run
     gen = getPriorGen(genFleetOnline,priorHoursCE,priorCapacExpModel)

@@ -3,13 +3,13 @@
 *$offlisting
 *$offsymxref offsymlist
 Options
-         optcr = 1E-3
+         optcr = 1E-2
          reslim = 100000
                  threads = 0
          solvelink = 5
-*         limcol = 999
-*         limrow = 999
-*         solprint = silent
+         limcol = 0
+         limrow = 0
+         solprint = silent
          ;
 
 $include CESharedFeatures.gms
