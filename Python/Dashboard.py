@@ -3,7 +3,7 @@
 from MASTER import *
 
 def main():
-    modelType = 'MGA'                                    # Type of model to run (CE or MGA)
+    modelType = 'CE'                                    # Type of model to run (CE or MGA)
 
     coOptH2 = True
     h2DemandScr = 'Reference'                           # Scenario for H2 demand

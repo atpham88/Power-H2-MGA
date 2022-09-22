@@ -10,17 +10,17 @@ Sets
 *CANDIDATE TECHNOLOGIES FOR CONSTRUCTION
          tech                            candidate technologies for new construction
 *Generators
-                gentechs(tech)                                  generating techs specifically not DACS or storage
+         gentechs(tech)                                  generating techs specifically not DACS or storage
          thermaltech(tech)               thermal plant types for new construction
                  CCStech(thermaltech)
-         nucleartech(thermaltech)
-         CCtech(thermaltech)
+                 nucleartech(thermaltech)
+                 CCtech(thermaltech)
          renewtech(tech)                 renewable plant types for new construction
                  windtech(renewtech)                       transInvestments
                  solartech(renewtech)
 *Storage
          storagetech(tech)               storage plant types for new construction
-                 nonstoragetech(tech)                    non storage techs
+         nonstoragetech(tech)                    non storage techs
                  ststoragetech(storagetech)
                  ltstoragetech(storagetech)
 *CO2 removal
@@ -38,7 +38,7 @@ Alias (l,ll);
 
 Parameters
 *MAX NEW UNITS TO BE BUILT
-         pNMaxWind
+                 pNMaxWind
                  pNMaxSolar
                  pNMaxNuclear
                  pNMaxCC
@@ -74,7 +74,8 @@ Parameters
 *FINANCIAL PARAMETERS
          pR                              discount rate
          pLife(tech)                     lifetime of tech [years]
-                 pLifeline
+         pLifeline
+         pH2Lifeline
          pCrf(tech)                      capital recovery factor
                  pCrfline
 *ZONAL PARAMETERS
@@ -83,7 +84,9 @@ Parameters
 *               pLinesinktech(ltech)
 *               pLinecapactech(ltech)
                 pLinecost(l)
-         pNMaxLine(l)
+                pH2Linecost(l)
+                pNMaxLine(l)
+                pNMaxH2Line(l)
 *               pPeakhtozone(peakH)
 *HOURLY RESERVE REQUIREMENTS [GW]
          pRegUpReqIncRE(renewtech,h)
@@ -103,10 +106,11 @@ $if not set gdxincname $abort 'no include file name for data file provided'
 $gdxin %gdxincname%
 $load ststorageegu, ltstorageegu, tech, dacstech, thermaltech, CCStech, nucleartech, CCtech, renewtech, solartech, windtech, storagetech, ststoragetech, ltstoragetech, peakH
 $load pNMaxWind, pNMaxSolar, pNMaxNuclear, pNMaxCC, pNMaxCCS, pNMaxDACS, pPMaxSto, pEMaxSto, pCapactech, pHrtech, pOpcosttech, pMaxZCaptech, pWeighttech
+$load pNMaxH2Line, pH2Lifeline, pH2Linecost
 $load pFom, pOcc, pPowOcc, pEneOcc, pRampratetech, pCO2emratetech
 $load pEfficiencytech
 $load pCO2emcap, pCf, pR, pLife, pLifeline
-$load pGenzonetech, pLinecost, pNMaxLine
+$load pGenzonetech, pLinecost, pNMaxLine, pH2Linecost
 $load pRegUpReqIncRE, pFlexReqIncRE
 $load pFlexeligibletech, pConteligibletech, pRegeligibletech
 $load pPlanningreserve
@@ -206,7 +210,7 @@ investmentcost..         vFixedcostannual =e= sum(nonstoragetech,vN(nonstoragete
 ******************SYSTEM-WIDE GENERATION AND RESERVE CONSTRAINTS*******************
 *Demand = generation by new and existing plants
 meetdemand(z,h)..          sum(tech$[pGenzonetech(tech)=ORD(z)],vGentech(tech,h)) + sum(egu$[pGenzone(egu)=ORD(z)],vGen(egu,h)) +
-                                                        sum(l$[pLinesink(l)=ORD(z)],vLineflow(l,h)) =g= (pDemand(z,h) + vShiftedDemand(z,h)
+                                                        sum(l$[pLinesink(l)=ORD(z)],vLineflow(l,h))*pTransEff =g= (pDemand(z,h) + vShiftedDemand(z,h)
                                                         + sum(storageegu$[pGenzone(storageegu)=ORD(z)],vCharge(storageegu,h)) + sum(storagetech$[pGenzonetech(storagetech)=ORD(z)],vChargetech(storagetech,h))
                                                                                                                 + sum(l$[pLinesource(l)=ORD(z)],vLineflow(l,h)));
 
@@ -235,7 +239,6 @@ meetregupreserve(z,h)..    sum(tech$[pGenzonetech(tech)=ORD(z)],vReguptech(tech,
 
 *Limit line flows on new lines
 linecapacnew(l,ll)$(pLinesource(l)=pLinesink(ll) and pLinesource(ll)=pLinesink(l)).. vLinecapacnew(l) =e= vNl(l) + vNl(ll);
-*limitLineFlows(l,h).. pLinecapac(l)+vNl(l) =g= vLineflow(l,h);
 limitLineFlows(l,h).. pLinecapac(l)+vLinecapacnew(l) =g= vLineflow(l,h);
 *new lines with same sources and sinks have the same capacity:
 *biLineLimit(l,ll)$(pLinesource(l)=pLinesink(ll) and pLinesource(ll)=pLinesink(l)).. vNl(l) =e= vNl(ll);

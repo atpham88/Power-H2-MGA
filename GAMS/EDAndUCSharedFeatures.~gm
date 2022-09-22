@@ -5,14 +5,14 @@ $onEmpty
 Sets
 *Existing generators
          egu                             existing generators
-                 renewegu(egu)                                  existing wind and solar generators
-                 windegu(renewegu)                              existing wind generators
-                 solaregu(renewegu)                             existing solar generators
+                 renewegu(egu)           existing wind and solar generators
+                 windegu(renewegu)       existing wind generators
+                 solaregu(renewegu)      existing solar generators
                  hydroegu(renewegu)
                  genegu(egu)                  egus that are not dacs or storage
                  dacsegu(egu)                 direct air capture units
                  notdacsegu(egu)              egus that are not dac units
-         storageegu(egu)                 storage units
+                 storageegu(egu)              storage units
          h                               hours
                  z                                                              zones
                  l                                                              lines
@@ -37,17 +37,19 @@ Parameters
          pMaxgenwind(z,h)                  max hourly generation for existing wind [GWh]
          pMaxgensolar(z,h)                 max hourly generation for existing solar [GWh]
 *STORAGE PARAMETERS
-                 pStoinenergymarket              whether storage can provide energy (1) or not (0)
+                 pStoinenergymarket      whether storage can provide energy (1) or not (0)
          pEfficiency(storageegu)         round trip storage efficiency
          pCapaccharge(storageegu)        max charging capacity (GW)
          pMaxsoc(storageegu)             max stored energy (GWh)
          pMinsoc(storageegu)             min stored energy (GWh)
 *ZONAL PROPERTIES
-                pGenzone(egu)                                   zone in which egu is located
-                pDemand(z,h)                      hourly electricity demand [GWh]
-        pLinesource(l)                                  zone that is the source of line l
-                pLinesink(l)                                    zone that is the sink of line l
-                pLinecapac(l)                                   MW capacity of line l
+                pGenzone(egu)            zone in which egu is located
+                pDemand(z,h)             hourly electricity demand [GWh]
+                pH2Demand(z)             annual pure hydrogen demand (metric ton)
+                pLinesource(l)           zone that is the source of line l
+                pLinesink(l)             zone that is the sink of line l
+                pLinecapac(l)            MW capacity of line l
+                pH2ExLineCapac(l)        Existing hydrogen pipeline capacity (=0 in metric ton)
                 pTransEff
 *HOURLY ELECTRICITY DEMAND [GWh]
          pDemandShifter                  demand shifter (percentage)
@@ -78,6 +80,7 @@ $gdxin %gdxincname%
 $load egu, renewegu, windegu, solaregu, hydroegu, h, z, l, dacsegu, storageegu
 $load pCapac, pHr, pOpcost, pRamprate, pCO2emrate, pCO2cost, pObjLimit
 $load pMaxgensolar, pMaxgenwind
+$load pH2Demand, pH2ExLineCapac
 $load pStoinenergymarket, pEfficiency, pMaxsoc, pMinsoc, pCapaccharge
 $load pGenzone, pDemand, pLinesource, pLinesink, pLinecapac, pTransEff
 $load pDemandShifter, pDemandShiftingBlock, pCnse, pRegupreserves, pFlexreserves, pContreserves

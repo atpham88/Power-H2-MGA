@@ -245,8 +245,7 @@ def addNewLineParams(db, lineDists, lineCosts, lineSet, maxCapPerTech, buildLimi
     add1dParam(db, h2Cost.to_dict(), lineSet, h2Cost.index, 'pH2Linecost')
     add0dParam(db, 'pH2Lifeline', h2LineLife)
     # Maximum H2 pipeline capacity (metric ton)
-    add1dParam(db, maxH2LineCapac, lineSet, h2Cost.index, 'pNMaxH2Line')
-    add0dParam(db, 'pH2Lifeline', h2LineLife)
+    add1dParam(db, pd.Series(maxH2LineCapac, index=h2Cost.index).to_dict(), lineSet, h2Cost.index, 'pNMaxH2Line')
 
 
 ##### ADD INITIAL COMMITMENT STATE FOR EXISTING GENS FOR EACH TIME BLOCK
