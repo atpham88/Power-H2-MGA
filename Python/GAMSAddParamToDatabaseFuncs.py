@@ -99,12 +99,14 @@ def addSpinReserveEligibility(db, df, genSet, newTechs=False):
 
 ##### ADD EXISTING LINE PARAMETERS
 def addLineParams(db,lineLimits,transmissionEff,lineSet,zoneOrder,mwToGW):
-    #Transmission line limits
+    # Transmission line limits
     add1dParam(db,pd.Series(lineLimits['TotalCapacity'].values.astype(float)/mwToGW,index=lineLimits['GAMS Symbol']).to_dict(),lineSet,lineLimits['GAMS Symbol'],'pLinecapac')
-    #Transmission efficiency
+    # Transmission efficiency
     add0dParam(db,'pTransEff',transmissionEff)
-    #Transmission line sources & sinks
+    # Transmission line sources & sinks
     addLineSourceSink(db,lineLimits,lineSet,zoneOrder)
+    # Existing h2 pipeline between zone = 0:
+    add1dParam(db, pd.Series(0, index=lineLimits['GAMS Symbol']).to_dict(), lineSet, lineLimits['GAMS Symbol'], 'pH2ExLineCapac')
 
 
 def addLineSourceSink(db, df, lineSet, zoneOrder, techLbl=''):
@@ -224,16 +226,27 @@ def addNewLineParams(db, lineDists, lineCosts, lineSet, maxCapPerTech, buildLimi
     if interconn == 'ERCOT':
         cost = pd.Series(lineCosts['Line Cost ($/mw-mile)'].values.astype(float), index=lineCosts['GAMS Symbol'])
         dist = pd.Series(lineDists['AC'].values.astype(float), index=lineDists['GAMS Symbol'])
-    elif interconn == 'EI'  or interconn == 'WECC':
+    elif interconn == 'EI' or interconn == 'WECC':
         cost = pd.Series(lineCosts['cost($/mw-mile)'].values.astype(float), index=lineCosts['GAMS Symbol'])
         dist = pd.Series(lineDists['dist(mile)'].values.astype(float), index=lineDists['GAMS Symbol'])
     totalCost = cost * dist
     add1dParam(db, totalCost.to_dict(), lineSet, totalCost.index, 'pLinecost')
+
     # Maximum transmission expansion (GW)
     maxCapacs = pd.Series(maxCapPerTech['Transmission'], index=totalCost.index) / mwToGW  # convert from MW to GW
     add1dParam(db, maxCapacs.to_dict(), lineSet, maxCapacs.index, 'pNMaxLine')
     # Lifetime of new lines
     add0dParam(db, 'pLifeline', lineLife)
+
+    # H2 pipeline cost = $3.72M/mile (The Future of Hydrogen, IEA report)
+    h2Cost = 3.72 * 1e6 * dist
+    h2LineLife = 40  # Years
+    maxH2LineCapac = 38.8  # per unit if pipeline unit (metric ton)
+    add1dParam(db, h2Cost.to_dict(), lineSet, h2Cost.index, 'pH2Linecost')
+    add0dParam(db, 'pH2Lifeline', h2LineLife)
+    # Maximum H2 pipeline capacity (metric ton)
+    add1dParam(db, maxH2LineCapac, lineSet, h2Cost.index, 'pNMaxH2Line')
+    add0dParam(db, 'pH2Lifeline', h2LineLife)
 
 
 ##### ADD INITIAL COMMITMENT STATE FOR EXISTING GENS FOR EACH TIME BLOCK
