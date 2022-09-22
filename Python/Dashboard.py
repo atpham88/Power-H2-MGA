@@ -1,11 +1,12 @@
-# Updated 08/18/2022 by An P.
-
-import pandas as pd
+# Updated 09/21/2022 by An P.
 
 from MASTER import *
 
 def main():
-    modelType = 'CE'                                    # Type of model to run (CE or MGA)
+    modelType = 'MGA'                                    # Type of model to run (CE or MGA)
+
+    coOptH2 = True
+    h2DemandScr = 'Reference'                           # Scenario for H2 demand
 
     if modelType == 'CE':
         runningStage = ['CE']
@@ -14,15 +15,15 @@ def main():
 
     # ### STUDY AREA AND METEOROLOGICAL-DEPENDENT DATA
     metYear = 2012                                      # year of meteorological data used for demand and renewables
-    interconn = 'ERCOT'                                 # which interconnection to run - ERCOT, WECC, EI
+    interconn = 'WECC'                                 # which interconnection to run - ERCOT, WECC, EI
     balAuths = 'full'                                   # full: run for all BAs in interconn. TODO: add selection of a subset of BAs.
-    electrifiedDemand = True                            # whether to import electrified demand futures from NREL's EFS
+    electrifiedDemand = True                            # whether to import electrified demand futures from NREL EFS
     elecDemandScen = 'REFERENCE'                        # 'REFERENCE','HIGH','MEDIUM' (ref is lower than med)
     reSourceMERRA = True                                # == True: use MERRA as renewable data source, == False: use NSDB and Wind Toolkit
     fixDays = True
 
     annualDemandGrowth = 0                              # fraction demand growth per year - ignored if use EFS data (electrifieDemand=True)
-    reDownFactor = 4                                    # downscaling factor for W&S new CFs; 1 means full resolution, 2 means half resolution, 3 is 1/3 resolution, etc
+    reDownFactor = 10                                    # downscaling factor for W&S new CFs; 1 means full resolution, 2 means half resolution, 3 is 1/3 resolution, etc
 
     # ### BUILD SCENARIO
     buildLimitsCase = 1                                 # 1 = reference case,
@@ -40,7 +41,7 @@ def main():
 
     # ### RUNNING ON SC OR LOCAL
     runOnSC = False                                     # whether running on supercomputer
-    if runOnSC == False:
+    if not runOnSC:
         projectPath = "C:\\Users\\atpha\\Documents\\Postdocs\\Projects\\Power-H2_MGA\\Model\\Python\\"
     else:
         projectPath = "/home/anph/projects/PH2/Model/Python/"
@@ -55,11 +56,11 @@ def main():
     # ### CE OPTIONS
     runCE, ceOps = True, 'ED'                           # ops are 'ED' or 'UC' (econ disp or unit comm constraints)
     numBlocks, daysPerBlock, daysPerPeak = 4, 2, 3      # num rep time blocks, days per rep block, and days per peak block in CE
+
     if modelType == 'CE':
-        startYear, endYear, yearStepCE = 2020, 2026, 5
+        startYear, endYear, yearStepCE = 2020, 2051, 30
     elif modelType == 'MGA':
         startYear, endYear, yearStepCE = 2020, 2051, 30
-
     mulStep = (yearStepCE * 2 < (endYear - startYear))
 
     removeHydro = False                                 # whether to remove hydropower from fleet & subtract generation from demand, or to include hydro as dispatchable in CE w/ gen limit
@@ -79,7 +80,7 @@ def main():
     useCO2Price = False                                 # whether to calc & inc CO2 price in operations run
 
     # ### MGA OPTIONS:
-    maxIter = 100                                       # Maximum number of iterations
+    maxIter = 4                                       # Maximum number of iterations
 
     # ### LIMITS ON TECHNOLOGY DEPLOYMENT (max added MW per CE run (W&S by cell))
     # wind: 2000, solar: 17000
@@ -96,21 +97,23 @@ def main():
              newGenspD, iterationLast) = masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDemand, elecDemandScen, reSourceMERRA, fixDays, planNESystem,
                                                         emissionSystem, buildLimitsCase, runOnSC, co2EmsCapInFinalYear, yearIncDACS, compressFleet, runCE, ceOps, numBlocks,
                                                         daysPerBlock, daysPerPeak, startYear, endYear, yearStepCE, greenField, includeRes, stoInCE, seasStoInCE, retireByAge,
-                                                        planningReserveMargin, retirementCFCutoff, discountRate, ptEligRetCF, incITC, incNuc, runFirstYear, ucOrED, mulStep, removeHydro,
-                                                        useCO2Price, maxCapPerTech, reDownFactor, annualDemandGrowth, iteration, mgaWeight, newGenspD, iterationLast, transmissionEff)
+                                                        planningReserveMargin, retirementCFCutoff, discountRate, ptEligRetCF, incITC, incNuc, runFirstYear, ucOrED, mulStep,
+                                                        removeHydro, useCO2Price, maxCapPerTech, reDownFactor, annualDemandGrowth, iteration, mgaWeight, newGenspD,
+                                                        iterationLast, transmissionEff, h2DemandScr)
         elif rStage == 'MGA':
             fval = pd.read_csv(projectPath + resultsCE + "\\vZannualCE" + str(endYear-1) + ".csv", header=None)
-            objLimit = fval.iloc[0,0]*1.1
+            objLimit = fval.iloc[0, 0]*1.1
             while iteration <= maxIter:
                 (resultsMGA, mgaWeight,
                  newGenspD, iterationLast) = masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDemand, elecDemandScen, reSourceMERRA, fixDays, planNESystem,
-                                                            emissionSystem,buildLimitsCase, runOnSC, co2EmsCapInFinalYear, yearIncDACS, compressFleet, runCE, ceOps, numBlocks,
+                                                            emissionSystem, buildLimitsCase, runOnSC, co2EmsCapInFinalYear, yearIncDACS, compressFleet, runCE, ceOps, numBlocks,
                                                             daysPerBlock, daysPerPeak, startYear, endYear, yearStepCE, greenField, includeRes, stoInCE, seasStoInCE, retireByAge,
-                                                            planningReserveMargin, retirementCFCutoff, discountRate, ptEligRetCF, incITC, incNuc, runFirstYear, ucOrED, mulStep, removeHydro,
-                                                            useCO2Price, maxCapPerTech, reDownFactor, annualDemandGrowth, iteration, mgaWeight, newGenspD, iterationLast, transmissionEff)
+                                                            planningReserveMargin, retirementCFCutoff, discountRate, ptEligRetCF, incITC, incNuc, runFirstYear, ucOrED, mulStep,
+                                                            removeHydro, useCO2Price, maxCapPerTech, reDownFactor, annualDemandGrowth, iteration, mgaWeight, newGenspD,
+                                                            iterationLast, transmissionEff, h2DemandScr)
                 if iteration == iterationLast:
                     break
                 else:
-                    iteration +=1
+                    iteration += 1
 
 main()

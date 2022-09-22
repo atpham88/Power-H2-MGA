@@ -36,6 +36,7 @@ from WriteTimeDependentConstraints import writeTimeDependentConstraints
 from WriteBuildVariable import writeBuildVariable
 from CreateEmptyReserveDfs import createEmptyReserveDfs
 from SetupTransmissionAndZones import setupTransmissionAndZones, defineTransmissionRegions
+from GetH2Demand import *
 import pickle
 
 # SET OPTIONS
@@ -147,8 +148,9 @@ def defineReserveParameters(stoMkts, stoFTLabels):
 def masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDemand, elecDemandScen, reSourceMERRA, fixDays, planNESystem,
                    emissionSystem, buildLimitsCase, runOnSC, co2EmsCapInFinalYear, yearIncDACS, compressFleet, runCE, ceOps, numBlocks,
                    daysPerBlock, daysPerPeak, startYear, endYear, yearStepCE, greenField, includeRes, stoInCE, seasStoInCE, retireByAge,
-                   planningReserveMargin, retirementCFCutoff, discountRate, ptEligRetCF, incITC, incNuc, runFirstYear, ucOrED, mulStep, removeHydro,
-                   useCO2Price, maxCapPerTech, reDownFactor, annualDemandGrowth, iteration, mgaWeight, newGenspD, iterationLast, transmissionEff):
+                   planningReserveMargin, retirementCFCutoff, discountRate, ptEligRetCF, incITC, incNuc, runFirstYear, ucOrED, mulStep,
+                   removeHydro, useCO2Price, maxCapPerTech, reDownFactor, annualDemandGrowth, iteration, mgaWeight, newGenspD,
+                   iterationLast, transmissionEff, h2DemandScr):
     # Import key parameters
     (fullYearCE, fuelPrices, co2Ems2020, stoMkts, stoFTLabels, stoPTLabels, initSOCFraction,
      tzAnalysis, stoMinSOC, demandShifter, demandShiftingBlock) = setKeyParameters(metYear, interconn, electrifiedDemand, buildLimitsCase, ceOps,
@@ -177,7 +179,7 @@ def masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDe
     # Run CE and/or ED/UCED
     for currYear in range(startYear, endYear, yearStepCE):
         # Set CO2 cap and demand for year
-        currCo2Cap = co2Ems2020 + (co2EmsCapInFinalYear - co2Ems2020) / (endYear - startYear) * (currYear - startYear)
+        currCo2Cap = co2Ems2020 + (co2EmsCapInFinalYear - co2Ems2020) / (endYear-1 - startYear) * (currYear - startYear)
 
         print('Entering year ', currYear, ' with CO2 cap (million tons):', round(currCo2Cap / 1e6))
 
@@ -186,9 +188,12 @@ def masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDe
         if not os.path.exists(resultsDir): os.makedirs(resultsDir)
 
         # Scale up demand profile if needed
-        demandProfile = getDemandForFutureYear(demandProfile, annualDemandGrowth, metYear, currYear,
-                                               electrifiedDemand, transRegions, elecDemandScen)
+        demandProfile = getDemandForFutureYear(demandProfile, annualDemandGrowth, metYear, currYear, electrifiedDemand, transRegions, elecDemandScen)
         demandProfile.to_csv(os.path.join(resultsDir, 'demandPreProcessing' + str(currYear) + '.csv'))
+
+        # Get H2 demand:
+        h2AnnualDemand = getH2AnnualDemand(transRegions, pRegionShapes, h2DemandScr)
+        h2AnnualDemand.to_csv(os.path.join(resultsDir, 'h2demandAnnual' + str(currYear) + '.csv'))
 
         # Run CE
         if currYear > startYear and runCE:
@@ -225,7 +230,7 @@ def masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDe
                                                                 lineLimits, lineDists, lineCosts, contFlexInelig, buildLimitsCase, emissionSystem,
                                                                 planNESystem, co2EmsCapInFinalYear, electrifiedDemand, elecDemandScen, reSourceMERRA,
                                                                 stoFTLabels, transmissionEff, removeHydro, fixDays, rStage, objLimit,
-                                                                iteration, mgaWeight, newGenspD, iterationLast)
+                                                                iteration, mgaWeight, newGenspD, iterationLast, h2AnnualDemand)
 
         # Run dispatch
         if (ucOrED != 'None') and ((currYear == startYear and runFirstYear) or (currYear > startYear)):
@@ -291,7 +296,7 @@ def runCapacityExpansion(genFleet, demand, startYear, currYear, planningReserveM
                          ceOps, stoMkts, initSOCFraction, includeRes, reDownFactor, incNuc, demandShifter, demandShiftingBlock, runOnSC,
                          interconn, yearIncDACS, transRegions, pRegionShapes, lineLimits, lineDists, lineCosts, contFlexInelig, buildLimitsCase,
                          emissionSystem, planNESystem, co2EmsCapInFinalYear, electrifiedDemand, elecDemandScen, reSourceMERRA,  stoFTLabels,
-                         transmissionEff, removeHydro, fixDays, rStage, objLimit, iteration, mgaWeight, newGenspD, iterationLast):
+                         transmissionEff, removeHydro, fixDays, rStage, objLimit, iteration, mgaWeight, newGenspD, iterationLast, h2AnnualDemand):
 
 
     # Create results directory
@@ -407,7 +412,7 @@ def runCapacityExpansion(genFleet, demand, startYear, currYear, planningReserveM
     writeBuildVariable(ceOps, gamsFileDir)
     genSet, hourSet, hourSymbols, zoneOrder, lineSet, zoneSet = edAndUCSharedFeatures(db, objLimit, genFleetForCE, hoursForCE, demandCE, contCE, regUpCE, flexCE,
                                                                                       demandShifter, demandShiftingBlock, rrToRegTime, rrToFlexTime, rrToContTime,
-                                                                                      solarGenCE, windGenCE, transRegions, lineLimits, transmissionEff)
+                                                                                      solarGenCE, windGenCE, transRegions, lineLimits, transmissionEff, h2AnnualDemand)
 
     stoGenSet, stoGenSymbols = storageSetsParamsVariables(db, genFleetForCE, stoMkts, stoFTLabels)
     stoTechSet, stoTechSymbols = ceSharedFeatures(db, peakDemandHour, genFleetForCE, newTechsCE, planningReserve, discountRate, currCo2Cap,
@@ -494,7 +499,7 @@ def runGAMS(gamsFilename, ws, db):
     return model, ms, ss
 
 def edAndUCSharedFeatures(db, objLimit, genFleet, hours, demand, contRes, regUpRes, flexRes, demandShifter, demandShiftingBlock, rrToRegTime, rrToFlexTime,
-                          rrToContTime, hourlySolarGen, hourlyWindGen, transRegions, lineLimits, transmissionEff, cnse=10000, co2Price=0):
+                          rrToContTime, hourlySolarGen, hourlyWindGen, transRegions, lineLimits, transmissionEff, h2AnnualDemand, cnse=10000, co2Price=0):
     # SETS
     genSet = addGeneratorSets(db, genFleet)
     hourSet, hourSymbols = addHourSet(db, hours)
@@ -504,6 +509,7 @@ def edAndUCSharedFeatures(db, objLimit, genFleet, hours, demand, contRes, regUpR
     # PARAMETERS
     # Demand and reserves
     addDemandParam(db, demand, hourSet, zoneSet, demandShifter, demandShiftingBlock, mwToGW)
+    addH2DemandParam(db, h2AnnualDemand, zoneSet)
     addReserveParameters(db, contRes, regUpRes, flexRes, rrToRegTime, rrToFlexTime, rrToContTime, hourSet, zoneSet, mwToGW)
 
     # CO2 cap or price

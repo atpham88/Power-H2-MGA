@@ -18,6 +18,9 @@ def addDemandParam(db, demand, hourSet, zoneSet, demandShifter, demandShiftingBl
     add0dParam(db, 'pDemandShifter', demandShifter)
     add0dParam(db, 'pDemandShiftingBlock', demandShiftingBlock)
 
+#### ADD ANNUAL HYDROGEN DEMAND (ton)
+def addH2DemandParam(db, h2AnnualDemand, zoneSet):
+    add1dParam(db, h2AnnualDemand.to_dict(), zoneSet, h2AnnualDemand.index, 'pH2Demand')
 
 ##### ADD EXISTING OR NEW GENERATOR PARAMETERS (scalars account for unit conversions)
 def addGenParams(db, df, genSet, mwToGW, lbToShortTon, zoneOrder, newTechs=False):

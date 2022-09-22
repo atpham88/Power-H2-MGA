@@ -1,0 +1,26 @@
+Publication Date
+October 2020
+
+
+Citation
+Ruth, Mark, Paige Jadun, Nicholas Gilroy, Elizabeth Connelly, Richard Boardman, A.J. Simon, Amgad Elgowainy, and Jarett Zuboy. 2020. The Technical and Economic Potential of the H2@Scale Concept within the United States. Golden, CO: National Renewable Energy Laboratory. NREL/TP- 6A20-77610. https://www.nrel.gov/docs/fy21osti/77610.pdf.
+
+
+Summary
+This data release provides estimates on hydrogen’s economic potential for possible hydrogen applications and production technologies. We define the economic potential as the quantity of hydrogen at an equilibrium price at which suppliers are willing to sell and consumers are willing to buy the same quantity of hydrogen.
+
+
+Contacts
+Ruth, Mark <Mark.Ruth@nrel.gov>
+Jadun, Paige <Paige.Jadun@nrel.gov>
+Gilroy, Nicholas <Nicholas.Gilroy@nrel.gov>
+
+
+Attached Files
+00Readme_Hydrogen_Economic_Potential_Supply_Demand.txt
+
+Hydrogen_Economic_Potential_Supply_Demand.csv
+
+
+Tags
+National Renewable Energy Laboratory (NREL), H2@Scale, hydrogen, potential, geospatial datasets, technical potential, resource potential
