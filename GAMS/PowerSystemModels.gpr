@@ -4911,29 +4911,30 @@ Order=1
 Decim=7
 PlaneRownr=-1
 
-[OPENWINDOW_1]
-MAXIM=1
-TOP=0
-LEFT=4
-HEIGHT=894
-WIDTH=1410
-
-[RP:EDANDUCSHAREDFEATURES]
+[RP:CEWITHED]
 1=
 
-[RP:CEWITHED]
+[RP:EDANDUCSHAREDFEATURES]
 1=
 
 [RP:CESHAREDFEATURES]
 1=
 
 [MRUFILES]
-1=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\_gams_py_gdb0.gdx
-2=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\_gams_py_gjo0.lst
-3=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\CESharedFeatures.gms
-4=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\CEWithED.gms
-5=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\EDAndUCSharedFeatures.gms
-6=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\CESharedFeatures.gms
-7=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\_gams_py_gjo0.lst
-8=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\MGAWithED.gms
-9=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\CEWithED.gms
+1=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\_gams_py_gjo0.lst
+2=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\CESharedFeatures.gms
+3=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\EDAndUCSharedFeatures.gms
+4=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\CEWithED.gms
+5=C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS\CESharedFeatures.gms
+6=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\EDAndUCSharedFeatures.gms
+7=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\CEWithED.gms
+8=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\_gams_py_gjo0.lst
+
+[OPENWINDOW_1]
+FILE0=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\_gams_py_gdb0.gdx
+FILE1=C:\Users\atpha\Documents\Postdocs\Projects\NETs\Model\EI-CE\GAMS\_gams_py_gdb0.gdx
+MAXIM=1
+TOP=0
+LEFT=4
+HEIGHT=894
+WIDTH=1410

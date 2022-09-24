@@ -192,7 +192,7 @@ def masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDe
         demandProfile.to_csv(os.path.join(resultsDir, 'demandPreProcessing' + str(currYear) + '.csv'))
 
         # Get H2 demand:
-        h2AnnualDemand = getH2AnnualDemand(transRegions, pRegionShapes, h2DemandScr)
+        h2AnnualDemand = getH2AnnualDemand(currYear, transRegions, pRegionShapes, h2DemandScr)
         h2AnnualDemand.to_csv(os.path.join(resultsDir, 'h2demandAnnual' + str(currYear) + '.csv'))
 
         # Run CE
