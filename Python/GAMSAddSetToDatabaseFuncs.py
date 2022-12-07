@@ -14,12 +14,20 @@ def addGeneratorSets(db, genFleet):
         symbs = genFleet['GAMS Symbol'].loc[genFleet['FuelType'] == reFT]
         addSet(db, symbs.tolist() if symbs.shape[0] > 0 else [], reFT.lower() + 'egu')
     addSet(db,genFleet['GAMS Symbol'].loc[genFleet['PlantType'] == 'DAC'].tolist(), 'dacsegu')
+    addSet(db, genFleet['GAMS Symbol'].loc[(genFleet['PlantType'] == 'SMR') | (genFleet['PlantType'] == 'Electrolyzer')].tolist(), 'h2egu')
+    addSet(db, genFleet['GAMS Symbol'].loc[(genFleet['PlantType'] == 'H2Turbine') | (genFleet['PlantType'] == 'FuelCell')].tolist(), 'h2eegu')
+    addSet(db, genFleet['GAMS Symbol'].loc[(genFleet['PlantType'] == 'FuelCell')].tolist(), 'fuelcellegu')
+    addSet(db, genFleet['GAMS Symbol'].loc[(genFleet['PlantType'] == 'H2Turbine')].tolist(), 'h2turbineegu')
+    addSet(db, genFleet['GAMS Symbol'].loc[(genFleet['PlantType'] == 'Electrolyzer')].tolist(), 'electrolyzeregu')
     return genSet
 
 def addStoGenSets(db, genFleet, stoFTLabels):
     stoSymbols = genFleet.loc[genFleet['FuelType'].isin(stoFTLabels), 'GAMS Symbol'].tolist()
     stoGenSet = addSet(db, stoSymbols, 'storageegu')
-    return stoGenSet, stoSymbols
+    # hydrogen:
+    h2stoSymbols = genFleet.loc[genFleet['PlantType'] == 'Hydrogen', 'GAMS Symbol'].tolist()
+    h2stoGenSet = addSet(db, h2stoSymbols, 'h2storageegu')
+    return stoGenSet, stoSymbols, h2stoGenSet, h2stoSymbols
 
 
 def addStorageSubsets(db, genFleet, stoFTLabels):
@@ -63,29 +71,43 @@ def addLineSet(db,limits):
     lineSet = addSet(db,lineSymbols,'l')
     return lineSet,lineSymbols
 
+def addH2LineSet(db,H2limits):
+    H2lineSymbols = H2limits['GAMS Symbol'].values
+    H2lineSet = addSet(db,H2lineSymbols,'H2l')
+    return H2lineSet, H2lineSymbols
+
 ########### ADD NEW TECH SETS ##################################################
 #Inputs: GAMS db, new techs (2d list)
 def addNewTechsSets(db,newTechsCE):
-    #All techs
-    techSet = addSet(db,newTechsCE['GAMS Symbol'].tolist(),'tech') 
-    #Thermal techs
-    thermalSet = addSet(db,newTechsCE['GAMS Symbol'].loc[newTechsCE['ThermalOrRenewableOrStorage']=='thermal'].tolist(),'thermaltech')    
+    # All  techs
+    techSet = addSet(db, newTechsCE['GAMS Symbol'].tolist(), 'tech')
+    # Thermal techs
+    thermalSet = addSet(db, newTechsCE['GAMS Symbol'].loc[newTechsCE['ThermalOrRenewableOrStorage'] == 'thermal'].tolist(), 'thermaltech')
     addSet(db, newTechsCE['GAMS Symbol'].loc[newTechsCE['PlantType'] == 'Nuclear'].tolist(), 'nucleartech')
+    addSet(db, newTechsCE['GAMS Symbol'].loc[newTechsCE['PlantType'] == 'SR'].tolist(), 'srtech')
     addSet(db, newTechsCE['GAMS Symbol'].loc[newTechsCE['PlantType'] == 'Combined Cycle'].tolist(), 'CCtech')
     CCSSet = addSet(db, newTechsCE['GAMS Symbol'].loc[(newTechsCE['PlantCategory'] == 'CCS')].tolist(), 'CCStech')
-    #Renewables
-    reSet = addSet(db,newTechsCE['GAMS Symbol'].loc[newTechsCE['ThermalOrRenewableOrStorage']=='renewable'].tolist(),'renewtech') 
-    addSet(db,newTechsCE['GAMS Symbol'].loc[newTechsCE['FuelType']=='Wind'].tolist(),'windtech')
-    addSet(db,newTechsCE['GAMS Symbol'].loc[newTechsCE['FuelType']=='Solar'].tolist(),'solartech')
-    #Storage
-    storage = newTechsCE.loc[newTechsCE['ThermalOrRenewableOrStorage']=='storage']
+    # H2 producing techs:
+    h2Set = addSet(db, newTechsCE['GAMS Symbol'].loc[newTechsCE['ThermalOrRenewableOrStorage'] == 'h2'].tolist(), 'h2tech')
+    addSet(db, newTechsCE['GAMS Symbol'].loc[newTechsCE['PlantType'] == 'Electrolyzer'].tolist(), 'electrolyzertech')
+    SMRSet = addSet(db, newTechsCE['GAMS Symbol'].loc[(newTechsCE['PlantCategory'] == 'SMR')].tolist(), 'SMRtech')
+    # H2 to electricity techs:
+    h2TSet = addSet(db, newTechsCE['GAMS Symbol'].loc[(newTechsCE['PlantCategory'] == 'FuelCell') | (newTechsCE['PlantCategory'] == 'H2Turbine')].tolist(), 'h2etech')
+    addSet(db, newTechsCE['GAMS Symbol'].loc[(newTechsCE['PlantCategory'] == 'FuelCell')].tolist(), 'fuelcelltech')
+    addSet(db, newTechsCE['GAMS Symbol'].loc[(newTechsCE['PlantCategory'] == 'H2Turbine')].tolist(), 'h2turbinetech')
+    # Renewables
+    reSet = addSet(db, newTechsCE['GAMS Symbol'].loc[newTechsCE['ThermalOrRenewableOrStorage'] == 'renewable'].tolist(), 'renewtech')
+    addSet(db, newTechsCE['GAMS Symbol'].loc[newTechsCE['FuelType'] == 'Wind'].tolist(), 'windtech')
+    addSet(db, newTechsCE['GAMS Symbol'].loc[newTechsCE['FuelType'] == 'Solar'].tolist(), 'solartech')
+    # Storage
+    storage = newTechsCE.loc[newTechsCE['ThermalOrRenewableOrStorage'] == 'storage']
     stoSymbols = storage['GAMS Symbol'].tolist()
-    stoSet = addSet(db,stoSymbols,'storagetech')
-    addSet(db,storage['GAMS Symbol'].loc[(storage['Nameplate Energy Capacity (MWh)']/storage['Capacity (MW)'] < 30*24)].tolist(),'ststoragetech') 
-    addSet(db,storage['GAMS Symbol'].loc[(storage['Nameplate Energy Capacity (MWh)']/storage['Capacity (MW)'] >= 30*24)].tolist(),'ltstoragetech')
-    #DACS
-    dacsSet = addSet(db,newTechsCE['GAMS Symbol'].loc[newTechsCE['FuelType']=='DAC'].tolist(),'dacstech')
-    return techSet,reSet,stoSet,stoSymbols,thermalSet,dacsSet,CCSSet
+    stoSet = addSet(db, stoSymbols, 'storagetech')
+    addSet(db, storage['GAMS Symbol'].loc[(storage['Nameplate Energy Capacity (MWh)'] / storage['Capacity (MW)'] < 30 * 24)].tolist(), 'ststoragetech')
+    addSet(db, storage['GAMS Symbol'].loc[(storage['Nameplate Energy Capacity (MWh)'] / storage['Capacity (MW)'] >= 30 * 24)].tolist(), 'ltstoragetech')
+    # DACS
+    dacsSet = addSet(db, newTechsCE['GAMS Symbol'].loc[newTechsCE['FuelType'] == 'DAC'].tolist(), 'dacstech')
+    return techSet, reSet, stoSet, stoSymbols, thermalSet, dacsSet, CCSSet, h2Set, SMRSet, h2TSet
 
 def addNewLineSet(db,dists):
     lineSymbols = dists['GAMS Symbol'].values

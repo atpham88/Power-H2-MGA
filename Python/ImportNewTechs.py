@@ -6,34 +6,37 @@ import os, pandas as pd
 from AuxFuncs import *
 from SetupGeneratorFleet import *
 
-def getNewTechs(regElig,regCostFrac,currYear,incITC,stoInCE,seasStoInCE,fuelPrices,yearIncDACS,
-                incNuc,transRegions,contFlexInelig,onlyNSPSUnits=True,allowCoalWithoutCCS=False,firstYearForCCS=2030):
+def getNewTechs(regElig,regCostFrac, currYear, incITC, stoInCE, seasStoInCE, fuelPrices, yearIncDACS, coOptH2,
+                incNuc,transRegions, contFlexInelig, onlyNSPSUnits=True, allowCoalWithoutCCS=False, firstYearForCCS=2030):
     currYear2 = currYear
     if currYear > 2050: currYear = 2050
-    #Read in new techs and add parameters
-    newTechsCE = pd.read_excel(os.path.join('Data','NewPlantData','NewTechFramework.xlsx'))
-    newTechsCE = inputValuesForCurrentYear(newTechsCE,'Data\\NewPlantData',currYear)
-    newTechsCE = addUnitCommitmentParameters(newTechsCE,'PhorumUCParameters.csv') 
-    newTechsCE = addUnitCommitmentParameters(newTechsCE,'StorageUCParameters.csv')
-    newTechsCE = addFuelPrices(newTechsCE,currYear,fuelPrices)
-    if currYear2 >= yearIncDACS: newTechsCE = addDACS(newTechsCE,fuelPrices,currYear)
+    # Read in new techs and add parameters
+    if not coOptH2:
+        newTechsCE = pd.read_excel(os.path.join('Data', 'NewPlantData', 'NewTechFrameworkOriginal.xlsx'))
+    elif coOptH2:
+        newTechsCE = pd.read_excel(os.path.join('Data', 'NewPlantData', 'NewTechFramework.xlsx'))
+    newTechsCE = inputValuesForCurrentYear(newTechsCE, 'Data\\NewPlantData', currYear)
+    newTechsCE = addUnitCommitmentParameters(newTechsCE, 'PhorumUCParameters.csv')
+    newTechsCE = addUnitCommitmentParameters(newTechsCE, 'StorageUCParameters.csv')
+    newTechsCE = addFuelPrices(newTechsCE, currYear, fuelPrices)
+    if currYear2 >= yearIncDACS: newTechsCE = addDACS(newTechsCE, fuelPrices, currYear)
     newTechsCE = addRandomOpCostAdder(newTechsCE)
     newTechsCE = calcOpCost(newTechsCE)
-    newTechsCE = addRegResCostAndElig(newTechsCE,regElig,regCostFrac)
-    newTechsCE = addReserveEligibility(newTechsCE,contFlexInelig)
-    #Discount costs
-    for c,l in zip(['CAPEX(2012$/MW)','FOM(2012$/MW/yr)'],['occ','fom']):
-        newTechsCE[c] = convertCostToTgtYr(l,newTechsCE[c])
-    #Filter plants
-    if allowCoalWithoutCCS == False: newTechsCE = newTechsCE.loc[newTechsCE['PlantType'] != 'Coal Steam']
+    newTechsCE = addRegResCostAndElig(newTechsCE, regElig, regCostFrac)
+    newTechsCE = addReserveEligibility(newTechsCE, contFlexInelig)
+    # Discount costs
+    for c, l in zip(['CAPEX(2012$/MW)', 'FOM(2012$/MW/yr)'], ['occ', 'fom']):
+        newTechsCE[c] = convertCostToTgtYr(l, newTechsCE[c])
+    # Filter plants
+    if not allowCoalWithoutCCS: newTechsCE = newTechsCE.loc[newTechsCE['PlantType'] != 'Coal Steam']
     if onlyNSPSUnits: newTechsCE = newTechsCE.loc[newTechsCE['NSPSCompliant'] == 'Yes']
     if not stoInCE: newTechsCE = newTechsCE.loc[newTechsCE['FuelType'] != 'Energy Storage']
     if not seasStoInCE: newTechsCE = newTechsCE.loc[newTechsCE['PlantType'] != 'Hydrogen']
     if not incNuc: newTechsCE = newTechsCE.loc[newTechsCE['PlantType'] != 'Nuclear']
     if currYear < firstYearForCCS: newTechsCE = newTechsCE.loc[~newTechsCE['PlantType'].str.contains('CCS')]
-    #Assign tech options to each region
-    newTechsCE = repeatNonRETechOptionsForEachRegion(newTechsCE,transRegions)
-    newTechsCE.reset_index(inplace=True,drop=True)
+    # Assign tech options to each region
+    newTechsCE = repeatNonRETechOptionsForEachRegion(newTechsCE, transRegions)
+    newTechsCE.reset_index(inplace=True, drop=True)
     return newTechsCE
 
 def inputValuesForCurrentYear(newTechsCE,newPlantDataDir,currYear):

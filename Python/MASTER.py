@@ -1,4 +1,10 @@
-
+# FUTURE POSSIBLE ADDITIONS:
+# (8/17/22) Geothermal fuel not in PHORUM for UC parameters (WECC) - coudl add geothermal-specific values
+# Add time-varying limits on quantify of new techs to add
+# Add contingency reserves into greenfield run
+# Allow wind & solar to provide all reserves - add constriants to GAMS limiting their generation
+    # in CESharedFeatures
+# Make solar reserve calculation efficient
 
 import sys, os, csv, operator, copy, time, random, warnings, numpy as np, datetime as dt, pandas as pd
 from os import path
@@ -12,7 +18,7 @@ from ImportERCOTDemand import importHourlyERCOTDemand
 from UpdateFuelPriceFuncs import *
 from DemandFuncs import *
 from DemandFuncsCE import *
-from IsolateDataForCE import isolateDataInCEHours,isolateDataInCEBlocks
+from IsolateDataForCE import isolateDataInCEHours, isolateDataInCEBlocks
 from SetInitCondsUC import *
 from ImportNewTechs import getNewTechs
 from RetireUnitsCFPriorCE import retireUnitsCFPriorCE
@@ -150,7 +156,7 @@ def masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDe
                    daysPerBlock, daysPerPeak, startYear, endYear, yearStepCE, greenField, includeRes, stoInCE, seasStoInCE, retireByAge,
                    planningReserveMargin, retirementCFCutoff, discountRate, ptEligRetCF, incITC, incNuc, runFirstYear, ucOrED, mulStep,
                    removeHydro, useCO2Price, maxCapPerTech, reDownFactor, annualDemandGrowth, iteration, mgaWeight, newGenspD,
-                   iterationLast, transmissionEff, h2DemandScr):
+                   iterationLast, transmissionEff, h2DemandScr, coOptH2, electrolyzerCon, fuelcellCon, h2TurbineCon):
     # Import key parameters
     (fullYearCE, fuelPrices, co2Ems2020, stoMkts, stoFTLabels, stoPTLabels, initSOCFraction,
      tzAnalysis, stoMinSOC, demandShifter, demandShiftingBlock) = setKeyParameters(metYear, interconn, electrifiedDemand, buildLimitsCase, ceOps,
@@ -170,11 +176,10 @@ def masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDe
     if not os.path.exists(resultsDirAll): os.makedirs(resultsDirAll)
 
     # Setup initial fleet and demand
-    (genFleet, demandProfile, transRegions, pRegionShapes,
-     lineLimits, lineDists, lineCosts) = getInitialFleetDemandTransmission(startYear, fuelPrices, electrifiedDemand,
-                                                                           elecDemandScen, compressFleet, resultsDirAll,
-                                                                           regElig, regCostFrac, metYear, stoMinSOC, greenField,
-                                                                           interconn, balAuths, contFlexInelig, stoFTLabels, stoPTLabels)
+    (genFleet, demandProfile, transRegions, pRegionShapes, lineLimits,
+     H2lineLimits, lineDists, lineCosts) = getInitialFleetDemandTransmission(startYear, fuelPrices, electrifiedDemand, elecDemandScen, compressFleet,
+                                                                             resultsDirAll, regElig, regCostFrac, metYear, stoMinSOC, greenField,
+                                                                             interconn, balAuths, contFlexInelig, stoFTLabels, stoPTLabels)
 
     # Run CE and/or ED/UCED
     for currYear in range(startYear, endYear, yearStepCE):
@@ -193,7 +198,7 @@ def masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDe
 
         # Get H2 demand:
         h2AnnualDemand = getH2AnnualDemand(currYear, transRegions, pRegionShapes, h2DemandScr)
-        h2AnnualDemand.to_csv(os.path.join(resultsDir, 'h2demandAnnual' + str(currYear) + '.csv'))
+        h2AnnualDemand.to_csv(os.path.join(resultsDir, 'h2demandHourly' + str(currYear) + '.csv'))
 
         # Run CE
         if currYear > startYear and runCE:
@@ -216,10 +221,8 @@ def masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDe
                 mgaWeight = 0
 
 
-            (genFleet, genFleetPriorCE, lineLimits,
-             priorCEModel, priorHoursCE,
-             newGenspD, mgaWeight,
-             maxZoneCap, iterationLast) = runCapacityExpansion(genFleet, demandProfile, startYear, currYear, planningReserveMargin,
+            (genFleet, genFleetPriorCE, lineLimits, H2lineLimits, priorCEModel, priorHoursCE,
+             newGenspD, mgaWeight, maxZoneCap, iterationLast) = runCapacityExpansion(genFleet, demandProfile, startYear, currYear, planningReserveMargin,
                                                                 discountRate, fuelPrices, currCo2Cap, numBlocks, daysPerBlock, daysPerPeak,
                                                                 fullYearCE, retirementCFCutoff, retireByAge, tzAnalysis, resultsDir,
                                                                 maxCapPerTech, regLoadFrac, contLoadFrac, regErrorPercentile, flexErrorPercentile,
@@ -227,10 +230,11 @@ def masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDe
                                                                 genFleetPriorCE, priorCEModel, priorHoursCE, incITC, metYear, stoInCE, seasStoInCE,
                                                                 ceOps, stoMkts, initSOCFraction, includeRes, reDownFactor, incNuc, demandShifter,
                                                                 demandShiftingBlock, runOnSC, interconn, yearIncDACS, transRegions, pRegionShapes,
-                                                                lineLimits, lineDists, lineCosts, contFlexInelig, buildLimitsCase, emissionSystem,
+                                                                lineLimits, H2lineLimits, lineDists, lineCosts, contFlexInelig, buildLimitsCase, emissionSystem,
                                                                 planNESystem, co2EmsCapInFinalYear, electrifiedDemand, elecDemandScen, reSourceMERRA,
                                                                 stoFTLabels, transmissionEff, removeHydro, fixDays, rStage, objLimit,
-                                                                iteration, mgaWeight, newGenspD, iterationLast, h2AnnualDemand)
+                                                                iteration, mgaWeight, newGenspD, iterationLast, h2AnnualDemand, coOptH2,
+                                                                electrolyzerCon, fuelcellCon, h2TurbineCon)
 
         # Run dispatch
         if (ucOrED != 'None') and ((currYear == startYear and runFirstYear) or (currYear > startYear)):
@@ -267,7 +271,7 @@ def getInitialFleetDemandTransmission(startYear, fuelPrices, electrifiedDemand, 
     demand.to_csv(os.path.join(resultsDir, 'demandInitial.csv'))
 
     # TRANSMISSION
-    genFleet, transRegions, limits, dists, costs, pRegionShapes = setupTransmissionAndZones(genFleet, transRegions, interconn, balAuths)
+    genFleet, transRegions, limits, limitsH2, dists, costs, pRegionShapes = setupTransmissionAndZones(genFleet, transRegions, interconn, balAuths)
     for df, l in zip([limits, dists, costs], ['Limits', 'Dists', 'Costs']): df.to_csv(os.path.join(resultsDir, 'transmission' + l + 'Initial.csv'))
     genFleet.to_csv(os.path.join(resultsDir, 'genFleetInitialPreCompression.csv'))
 
@@ -279,7 +283,7 @@ def getInitialFleetDemandTransmission(startYear, fuelPrices, electrifiedDemand, 
     # If greenfield, elim existing generator fleet except tiny NG, wind, & solar plant (to avoid crash).
     if greenField: genFleet = stripDownGenFleet(genFleet, greenField)
     genFleet.to_csv(os.path.join(resultsDir, 'genFleetInitial.csv'))
-    return (genFleet, demand, transRegions, pRegionShapes, limits, dists, costs)
+    return (genFleet, demand, transRegions, pRegionShapes, limits, limitsH2, dists, costs)
 
 
 # ###############################################################################
@@ -294,9 +298,10 @@ def runCapacityExpansion(genFleet, demand, startYear, currYear, planningReserveM
                          regLoadFrac,contLoadFrac, regErrorPercentile, flexErrorPercentile, rrToRegTime, rrToFlexTime, rrToContTime, regElig,
                          regCostFrac, ptEligRetCF, genFleetPriorCE, priorCEModel, priorHoursCE, incITC, metYear, stoInCE, seasStoInCE,
                          ceOps, stoMkts, initSOCFraction, includeRes, reDownFactor, incNuc, demandShifter, demandShiftingBlock, runOnSC,
-                         interconn, yearIncDACS, transRegions, pRegionShapes, lineLimits, lineDists, lineCosts, contFlexInelig, buildLimitsCase,
-                         emissionSystem, planNESystem, co2EmsCapInFinalYear, electrifiedDemand, elecDemandScen, reSourceMERRA,  stoFTLabels,
-                         transmissionEff, removeHydro, fixDays, rStage, objLimit, iteration, mgaWeight, newGenspD, iterationLast, h2AnnualDemand):
+                         interconn, yearIncDACS, transRegions, pRegionShapes, lineLimits, H2lineLimits, lineDists, lineCosts, contFlexInelig,
+                         buildLimitsCase, emissionSystem, planNESystem, co2EmsCapInFinalYear, electrifiedDemand, elecDemandScen, reSourceMERRA,
+                         stoFTLabels, transmissionEff, removeHydro, fixDays, rStage, objLimit, iteration, mgaWeight, newGenspD, iterationLast,
+                         h2AnnualDemand, coOptH2, electrolyzerCon, fuelcellCon, h2TurbineCon):
 
 
     # Create results directory
@@ -314,7 +319,7 @@ def runCapacityExpansion(genFleet, demand, startYear, currYear, planningReserveM
     # Update new technology and fuel price data
     write2dListToCSV([[currCo2Cap]], os.path.join(resultsDir, 'co2CapCE' + str(currYear) + '.csv'))
     newTechsCE = getNewTechs(regElig, regCostFrac, currYear, incITC, stoInCE, seasStoInCE,
-                             fuelPrices, yearIncDACS, incNuc, transRegions, contFlexInelig)
+                             fuelPrices, yearIncDACS, coOptH2, incNuc, transRegions, contFlexInelig)
     genFleet = updateFuelPricesAndCosts(genFleet, currYear, fuelPrices, regCostFrac)
 
     # Retire units and create fleet for current CE loop
@@ -354,7 +359,7 @@ def runCapacityExpansion(genFleet, demand, startYear, currYear, planningReserveM
     elif iteration > 1:
         newTechsCE['Variable Weight'] = mgaWeight['Variable Weight']
 
-    pt = ['CCS', 'Combined Cycle', 'Nuclear', 'Battery Storage', 'Hydrogen', 'Wind', 'Solar']
+    pt = ['CCS', 'Combined Cycle', 'Nuclear', 'SR', 'Battery Storage', 'Hydrogen', 'Wind', 'Solar', 'Electrolyzer', 'SMR', 'SMR CCS', 'Fuel Cell', 'H2 Turbine']
     for item in list(range(len(pt))):
         if pt[item] == 'Wind' or pt[item] == 'Solar':
             newTechsCE.loc[newTechsCE['PlantType'].str.contains(pt[item].lower()), 'Max Zonal Cap'] = maxCapPerTech[pt[item]]/newTechsCE['Capacity (MW)']
@@ -381,6 +386,11 @@ def runCapacityExpansion(genFleet, demand, startYear, currYear, planningReserveM
     # Get timeseries hours for CE (demand, wind, solar, new wind, new solar, reserves) & save dfs
     (demandCE, windGenCE, solarGenCE, newCfsCE, contCE, regUpCE, flexCE, regUpIncCE, flexIncCE) = isolateDataInCEHours(hoursForCE, demand, windGenRegion, solarGenRegion,
                                                                                                                        newCfs, cont, regUp, flex, regUpInc, flexInc)
+
+    (h2DemandCE, windGenH2CE, solarGenH2CE, newCfsH2CE, contH2CE, regUpH2CE, flexH2CE,
+     regUpIncH2CE, flexIncH2CE) = isolateDataInCEHours(hoursForCE, h2AnnualDemand, windGenRegion, solarGenRegion, newCfs,
+                                                       cont, regUp, flex, regUpInc, flexInc)
+
     # Get total hydropower generation potential by block for CE
     [hydroGenCE] = isolateDataInCEBlocks(hoursForCE, hydroGen)
 
@@ -392,8 +402,8 @@ def runCapacityExpansion(genFleet, demand, startYear, currYear, planningReserveM
                       'regUpWinComp', 'flexSolComp', 'flexWinComp', 'hydroGen']):
         df.to_csv(os.path.join(resultsDir, n + 'FullYr' + str(currYear) + '.csv'))
 
-    for df, n in zip([demandCE, windGenCE, solarGenCE, newCfsCE, newTechsCE, contCE, regUpCE, flexCE, regUpIncCE, flexIncCE, hydroGenCE],
-                     ['demand', 'windGen', 'solarGen', 'windAndSolarNewCFs', 'newTechs', 'contRes', 'regUpRes', 'flexRes', 'regUpInc', 'flexInc', 'hydroGen']):
+    for df, n in zip([demandCE, h2DemandCE, windGenCE, solarGenCE, newCfsCE, newTechsCE, contCE, regUpCE, flexCE, regUpIncCE, flexIncCE, hydroGenCE],
+                     ['demand', 'h2Demand', 'windGen', 'solarGen', 'windAndSolarNewCFs', 'newTechs', 'contRes', 'regUpRes', 'flexRes', 'regUpInc', 'flexInc', 'hydroGen']):
         df.to_csv(os.path.join(resultsDir, n + 'CE' + str(currYear) + '.csv'))
 
     hoursForCE.to_csv(os.path.join(resultsDir, 'hoursCEByBlock' + str(currYear) + '.csv'))
@@ -410,26 +420,33 @@ def runCapacityExpansion(genFleet, demand, startYear, currYear, planningReserveM
     ws, db, gamsFileDir = createGAMSWorkspaceAndDatabase(runOnSC)
     writeTimeDependentConstraints(blockNamesChronoList, stoInCE, seasStoInCE, gamsFileDir, ceOps, lastRepBlockNames, specialBlocksPrior, removeHydro)
     writeBuildVariable(ceOps, gamsFileDir)
-    genSet, hourSet, hourSymbols, zoneOrder, lineSet, zoneSet = edAndUCSharedFeatures(db, objLimit, genFleetForCE, hoursForCE, demandCE, contCE, regUpCE, flexCE,
-                                                                                      demandShifter, demandShiftingBlock, rrToRegTime, rrToFlexTime, rrToContTime,
-                                                                                      solarGenCE, windGenCE, transRegions, lineLimits, transmissionEff, h2AnnualDemand)
+    genSet, hourSet, hourSymbols, zoneOrder, lineSet, H2lineSet, zoneSet = edAndUCSharedFeatures(db, objLimit, genFleetForCE, hoursForCE, demandCE, contCE, regUpCE, flexCE,
+                                                                                                 demandShifter, demandShiftingBlock, rrToRegTime, rrToFlexTime, rrToContTime,
+                                                                                                 solarGenCE, windGenCE, transRegions, lineLimits, H2lineLimits, transmissionEff, h2DemandCE)
 
     stoGenSet, stoGenSymbols = storageSetsParamsVariables(db, genFleetForCE, stoMkts, stoFTLabels)
-    stoTechSet, stoTechSymbols = ceSharedFeatures(db, peakDemandHour, genFleetForCE, newTechsCE, planningReserve, discountRate, currCo2Cap,
-                                                  hourSet, hourSymbols, newCfsCE, maxCapPerTech, regUpIncCE, flexIncCE, stoMkts,
-                                                  lineDists, lineCosts, lineSet, zoneOrder, ceOps, interconn, buildLimitsCase, stoFTLabels)
+    stoTechSet, stoTechSymbols = ceSharedFeatures(db, peakDemandHour, genFleetForCE, newTechsCE, planningReserve, discountRate, coOptH2,
+                                                  currCo2Cap, hourSet, hourSymbols, newCfsCE, maxCapPerTech, regUpIncCE, flexIncCE, stoMkts,
+                                                  lineDists, lineCosts, lineSet, zoneOrder, ceOps, interconn, buildLimitsCase, stoFTLabels,
+                                                  electrolyzerCon, fuelcellCon, h2TurbineCon)
     if ceOps == 'UC': ucFeatures(db, genFleetForCE, genSet),
     ceTimeDependentConstraints(db, hoursForCE, blockWeights, socScalars, ceOps, onOffInitialEachPeriod,
                                genSet, genFleetForCE, stoGenSet, stoGenSymbols, newTechsCE, stoTechSet, stoTechSymbols, initSOCFraction,
                                hydroGenCE, zoneSet)
 
     if rStage == 'CE':
-        capacExpModel, ms, ss = runGAMS('CEWith{o}.gms'.format(o=ceOps), ws, db)
+        if coOptH2:
+            capacExpModel, ms, ss = runGAMS('CEH2With{o}.gms'.format(o=ceOps), ws, db)
+        else:
+            capacExpModel, ms, ss = runGAMS('CEWith{o}.gms'.format(o=ceOps), ws, db)
     elif rStage == 'MGA':
-        capacExpModel, ms, ss = runGAMS('MGAWith{o}.gms'.format(o=ceOps), ws, db)
+        if coOptH2:
+            capacExpModel, ms, ss = runGAMS('MGAWith{o}.gms'.format(o=ceOps), ws, db)
+        else:
+            capacExpModel, ms, ss = runGAMS('MGAH2With{o}.gms'.format(o=ceOps), ws, db)
 
     # ########## SAVE AND PROCESS CE RESULTS
-    newGens, newStoECap, newStoPCap, newLines = saveCEBuilds(capacExpModel, iteration, rStage, resultsDir, currYear)
+    newGens, newStoECap, newStoPCap, newLines, newH2Lines = saveCEBuilds(capacExpModel, iteration, rStage, resultsDir, currYear, coOptH2)
 
     # Recalculate MGA weight for next iteration and determine termination condition for MGA:
     newGenspDPrior = newGenspD
@@ -461,9 +478,12 @@ def runCapacityExpansion(genFleet, demand, startYear, currYear, planningReserveM
     lineLimits = addNewLineCapToLimits(lineLimits, newLines)
     genFleet.to_csv(os.path.join(resultsDir, 'genFleetAfterCE' + str(currYear) + '.csv'))
     lineLimits.to_csv(os.path.join(resultsDir, 'lineLimitsAfterCE' + str(currYear) + '.csv'))
-
-    return (genFleet, genFleetForCE, lineLimits, capacExpModel, hoursForCE, newGenspD, mgaWeight, maxZoneCap, iterationLast)
-
+    if coOptH2:
+        H2lineLimits = addNewLineCapToLimits(H2lineLimits, newH2Lines)
+        H2lineLimits.to_csv(os.path.join(resultsDir, 'H2lineLimitsAfterCE' + str(currYear) + '.csv'))
+    else:
+        H2lineLimits = 0
+    return (genFleet, genFleetForCE, lineLimits, H2lineLimits, capacExpModel, hoursForCE, newGenspD, mgaWeight, maxZoneCap, iterationLast)
 
 # ###############################################################################
 # ###############################################################################
@@ -481,7 +501,7 @@ def createGAMSWorkspaceAndDatabase(runOnSC):
         # gamsFileDir = 'C:\\Users\\mtcraig\\Desktop\\Research\\Models\\CEGit\\GAMS'
         # gamsSysDir = 'C:\\GAMS\\win64\\31.1'
         gamsFileDir = r"C:\Users\atpha\Documents\Postdocs\Projects\Power-H2_MGA\Model\GAMS"
-        gamsSysDir = r"C:\GAMS\win64\30.2"
+        gamsSysDir = r"C:\GAMS\win64\36"
     ws = GamsWorkspace(working_directory=gamsFileDir, system_directory=gamsSysDir)
     db = ws.add_database()
     return ws, db, gamsFileDir
@@ -499,17 +519,17 @@ def runGAMS(gamsFilename, ws, db):
     return model, ms, ss
 
 def edAndUCSharedFeatures(db, objLimit, genFleet, hours, demand, contRes, regUpRes, flexRes, demandShifter, demandShiftingBlock, rrToRegTime, rrToFlexTime,
-                          rrToContTime, hourlySolarGen, hourlyWindGen, transRegions, lineLimits, transmissionEff, h2AnnualDemand, cnse=10000, co2Price=0):
+                          rrToContTime, hourlySolarGen, hourlyWindGen, transRegions, lineLimits, H2lineLimits, transmissionEff, h2Demand, cnse=10000, co2Price=0):
     # SETS
     genSet = addGeneratorSets(db, genFleet)
     hourSet, hourSymbols = addHourSet(db, hours)
     zoneSet,zoneSymbols,zoneOrder = addZoneSet(db, transRegions)
     lineSet,lineSymbols = addLineSet(db, lineLimits)
+    H2lineSet, H2lineSymbols = addH2LineSet(db, H2lineLimits)
 
     # PARAMETERS
     # Demand and reserves
-    addDemandParam(db, demand, hourSet, zoneSet, demandShifter, demandShiftingBlock, mwToGW)
-    addH2DemandParam(db, h2AnnualDemand, zoneSet)
+    addDemandParam(db, demand, h2Demand, hourSet, zoneSet, demandShifter, demandShiftingBlock, mwToGW)
     addReserveParameters(db, contRes, regUpRes, flexRes, rrToRegTime, rrToFlexTime, rrToContTime, hourSet, zoneSet, mwToGW)
 
     # CO2 cap or price
@@ -526,11 +546,13 @@ def edAndUCSharedFeatures(db, objLimit, genFleet, hours, demand, contRes, regUpR
 
     # Transmission lines
     addLineParams(db, lineLimits, transmissionEff, lineSet, zoneOrder, mwToGW)
-    return genSet, hourSet, hourSymbols, zoneOrder, lineSet, zoneSet
+    transmissionH2Eff = transmissionEff * 0
+    addH2LineParams(db, H2lineLimits, transmissionH2Eff, H2lineSet, zoneOrder, mwToGW)
+    return genSet, hourSet, hourSymbols, zoneOrder, lineSet, H2lineSet, zoneSet
 
 
 def storageSetsParamsVariables(db, genFleet, stoMkts, stoFTLabels):
-    (stoGenSet, stoGenSymbols) = addStoGenSets(db, genFleet, stoFTLabels)
+    (stoGenSet, stoGenSymbols, h2stoGenSet, h2stoSymbols) = addStoGenSets(db, genFleet, stoFTLabels)
     addStorageParams(db, genFleet, stoGenSet, stoGenSymbols, mwToGW, stoMkts)
     return stoGenSet, stoGenSymbols
 
@@ -548,25 +570,29 @@ def uc(db, stoGenSet, genSet, socInitial, onOffInitial, genAboveMinInitial, mdtC
     addEguInitialConditions(db, genSet, onOffInitial, genAboveMinInitial, mdtCarriedInitial, mwToGW)
 
 
-def ceSharedFeatures(db, peakDemandHour, genFleet, newTechs, planningReserve, discountRate,
+def ceSharedFeatures(db, peakDemandHour, genFleet, newTechs, planningReserve, discountRate, coOptH2,
                      co2Cap, hourSet, hourSymbols, newCfs, maxCapPerTech, regUpInc, flexInc, stoMkts,
-                     lineDists, lineCosts, lineSet, zoneOrder, ceOps, interconn, buildLimitsCase, stoFTLabels):
+                     lineDists, lineCosts, lineSet, zoneOrder, ceOps, interconn, buildLimitsCase,
+                     stoFTLabels, electrolyzerCon, fuelcellCon, h2TurbineCon):
 
     # Sets
     addPeakHourSubset(db, peakDemandHour)
     addStorageSubsets(db, genFleet, stoFTLabels)
-    (techSet, renewTechSet, stoTechSet, stoTechSymbols, thermalSet, dacsSet, CCSSet) = addNewTechsSets(db, newTechs)
+    (techSet, renewTechSet, stoTechSet, stoTechSymbols, thermalSet, dacsSet, CCSSet, h2Set, SMRSet, h2TSet) = addNewTechsSets(db, newTechs)
 
     # Long-term planning parameters
     addPlanningReserveParam(db, planningReserve, mwToGW)
     addDiscountRateParam(db, discountRate)
     addCO2Cap(db, co2Cap)
+    addElectrolyzerCon(db, electrolyzerCon)
+    addFuelCellCon(db, fuelcellCon)
+    addH2TurbineCon(db, h2TurbineCon)
 
     # New tech parameters
     addGenParams(db, newTechs, techSet, mwToGW, lbToShortTon, zoneOrder, True)
-    addTechCostParams(db, newTechs, techSet, stoTechSet, mwToGW)
+    addTechCostParams(db, newTechs, coOptH2, techSet, stoTechSet, mwToGW)
     addRenewTechCFParams(db, renewTechSet, hourSet, newCfs)
-    addMaxNewBuilds(db, newTechs, thermalSet, stoTechSet, dacsSet, CCSSet, maxCapPerTech, mwToGW, interconn)
+    addMaxNewBuilds(db, newTechs, thermalSet, stoTechSet, dacsSet, CCSSet, maxCapPerTech, coOptH2, mwToGW)
     if ceOps == 'UC': addGenUCParams(db, newTechs, techSet, mwToGW, True)
     addResIncParams(db, regUpInc, flexInc, renewTechSet, hourSet)
     addSpinReserveEligibility(db, newTechs, techSet, True)
@@ -637,7 +663,7 @@ def runDispatch(genFleet, objLimit, hourlyDemand, currYear, demandShifter, deman
     # Setup result dataframes
     daysToRun = range(firstDay, lastDay, daysOpt)
     dispatchResults = dict()
-    for k in ['vGen', 'vRegup', 'vFlex', 'vCont', 'vTurnon', 'vTurnoff', 'vOnoroff', 'vCharge', 'vStateofcharge']:
+    for k in ['vGen', 'vRegup', 'vFlex', 'vCont', 'vTurnon', 'vTurnoff', 'vOnoroff', 'vCharge', 'vStateofcharge', 'vELCharge','vH2TCharge']:
         dispatchResults[k] = pd.DataFrame(columns=genFleet['GAMS Symbol'], index=hourlyWindGen.index)
     sysResults = pd.DataFrame(columns=['vNse', 'vZ', 'mcGen', 'mcRegup', 'mcFlex', 'mcCont'], index=hourlyWindGen.index)
     msAndSs = pd.DataFrame(columns=['ms', 'ss'], index=daysToRun)

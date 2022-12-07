@@ -3,9 +3,9 @@
 from MASTER import *
 
 def main():
-    modelType = 'CE'                                    # Type of model to run (CE or MGA)
+    modelType = 'MGA'                                    # Type of model to run (CE or MGA)
 
-    coOptH2 = True
+    coOptH2 = False
     h2DemandScr = 'Reference'                           # Scenario for H2 demand
 
     if modelType == 'CE':
@@ -15,7 +15,7 @@ def main():
 
     # ### STUDY AREA AND METEOROLOGICAL-DEPENDENT DATA
     metYear = 2012                                      # year of meteorological data used for demand and renewables
-    interconn = 'WECC'                                 # which interconnection to run - ERCOT, WECC, EI
+    interconn = 'ERCOT'                                 # which interconnection to run - ERCOT, WECC, EI
     balAuths = 'full'                                   # full: run for all BAs in interconn. TODO: add selection of a subset of BAs.
     electrifiedDemand = True                            # whether to import electrified demand futures from NREL EFS
     elecDemandScen = 'REFERENCE'                        # 'REFERENCE','HIGH','MEDIUM' (ref is lower than med)
@@ -37,7 +37,7 @@ def main():
                                                         # "Negative" = negative emission system
 
     # ### NEGATIVE EMISSION SCENARIO
-    planNESystem = 2050                                 # Year that negative emission system is planned
+    planNESystem = 2020                                 # Year that negative emission system is planned
 
     # ### RUNNING ON SC OR LOCAL
     runOnSC = False                                     # whether running on supercomputer
@@ -47,7 +47,7 @@ def main():
         projectPath = "/home/anph/projects/PH2/Model/Python/"
 
     co2EmsCapInFinalYear = 0                            # cap on co2 emissions in final year of CE
-    yearIncDACS = 2060                                  # year to include DACS - set beyond end period if don't want DACS
+    yearIncDACS = 2100                                  # year to include DACS - set beyond end period if don't want DACS
 
     # ### CE AND UCED/ED OPTIONS
     compressFleet = True
@@ -79,14 +79,20 @@ def main():
     ucOrED = 'None'                                     # STRING that is either: ED, UC, None
     useCO2Price = False                                 # whether to calc & inc CO2 price in operations run
 
+    # ### HYDROGEN - ELECTRICITY CONVERSION:
+    electrolyzerCon = 51.4  # 51.4 MWh >> 1 ton H2
+    fuelcellCon = 0.051  # 0.051 ton H2 >> 1 MWh (based on 60% efficiency Fuel Cell)
+    h2TurbineCon = 0.047  # 0.047 ton H2 >> 1 MWh (based on 65% efficiency H2 turbine)
+
     # ### MGA OPTIONS:
-    maxIter = 4                                       # Maximum number of iterations
+    maxIter = 3                                       # Maximum number of iterations
 
     # ### LIMITS ON TECHNOLOGY DEPLOYMENT (max added MW per CE run (W&S by cell))
     # wind: 2000, solar: 17000
-    maxCapPerTech = {'Wind': 20000 * reDownFactor, 'Solar': 170000 * reDownFactor, 'Thermal': 999999, 'Combined Cycle': 50000,
-                     'Storage': 100000, 'Dac': -9999999, 'CCS': 999999, 'Nuclear': 999999, 'Battery Storage': 10000,
-                     'Hydrogen': 10000, 'Transmission': 10000}  # max added MW per CE run (W&S by cell)
+    maxCapPerTech = {'Wind': 20000 * reDownFactor, 'Solar': 170000 * reDownFactor, 'Thermal': 999999, 'Combined Cycle': 5000000000,
+                     'Storage': 100000000, 'Dac': -9999999, 'CCS': 9999999999, 'Nuclear': 9999999999, 'Battery Storage': 1000000000,
+                     'Hydrogen': 100000000, 'Transmission': 100000000, 'SR':999999999999, 'Fuel Cell': 999999999999, 'H2 Turbine': 9999999999,
+                     'SMR': 9999999999, 'SMR CCS': 999999999999, 'Electrolyzer': 9999999999}
 
     for item in runningStage:
         rStage = item
@@ -99,7 +105,7 @@ def main():
                                                         daysPerBlock, daysPerPeak, startYear, endYear, yearStepCE, greenField, includeRes, stoInCE, seasStoInCE, retireByAge,
                                                         planningReserveMargin, retirementCFCutoff, discountRate, ptEligRetCF, incITC, incNuc, runFirstYear, ucOrED, mulStep,
                                                         removeHydro, useCO2Price, maxCapPerTech, reDownFactor, annualDemandGrowth, iteration, mgaWeight, newGenspD,
-                                                        iterationLast, transmissionEff, h2DemandScr)
+                                                        iterationLast, transmissionEff, h2DemandScr, coOptH2, electrolyzerCon, fuelcellCon, h2TurbineCon)
         elif rStage == 'MGA':
             fval = pd.read_csv(projectPath + resultsCE + "\\vZannualCE" + str(endYear-1) + ".csv", header=None)
             objLimit = fval.iloc[0, 0]*1.1
@@ -110,7 +116,7 @@ def main():
                                                             daysPerBlock, daysPerPeak, startYear, endYear, yearStepCE, greenField, includeRes, stoInCE, seasStoInCE, retireByAge,
                                                             planningReserveMargin, retirementCFCutoff, discountRate, ptEligRetCF, incITC, incNuc, runFirstYear, ucOrED, mulStep,
                                                             removeHydro, useCO2Price, maxCapPerTech, reDownFactor, annualDemandGrowth, iteration, mgaWeight, newGenspD,
-                                                            iterationLast, transmissionEff, h2DemandScr)
+                                                            iterationLast, transmissionEff, h2DemandScr, coOptH2, electrolyzerCon, fuelcellCon, h2TurbineCon)
                 if iteration == iterationLast:
                     break
                 else:

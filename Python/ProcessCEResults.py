@@ -13,25 +13,41 @@ import xlsxwriter as xw
 #Inputs: running list of CE builds (2d list), CE model output as GAMS object, 
 #curr CE year
 #Outputs: new gen builds by technology (list of tuples of (techtype, # builds))
-def saveCEBuilds(capacExpModel, iteration, rStage, resultsDir, currYear):
+def saveCEBuilds(capacExpModel, iteration, rStage, resultsDir, currYear, coOptH2):
     newGenerators = extract1dVarResultsFromGAMSModel(capacExpModel, 'vN')
     newStoECap = extract1dVarResultsFromGAMSModel(capacExpModel, 'vEneBuiltSto')
     newStoPCap = extract1dVarResultsFromGAMSModel(capacExpModel, 'vPowBuiltSto')
     newLines = extract1dVarResultsFromGAMSModel(capacExpModel, 'vLinecapacnew')
-
+    if coOptH2:
+        newH2Lines = extract1dVarResultsFromGAMSModel(capacExpModel,'vH2Linecapacnew')
     print('Investments in ' + str(currYear))
     if rStage == 'MGA':
-        for n,d in zip(['vN'+ '_' + str(iteration) + '_', 'vEneBuiltSto' + '_' + str(iteration) + '_',
-                        'vPowBuiltSto' + '_' + str(iteration) + '_','vLinecapacnew'+'_' + str(iteration) + '_'],
-                       [newGenerators, newStoECap, newStoPCap, newLines]):
+        if coOptH2:
+            for n,d in zip(['vN'+ '_' + str(iteration) + '_', 'vEneBuiltSto' + '_' + str(iteration) + '_',
+                            'vPowBuiltSto' + '_' + str(iteration) + '_','vLinecapacnew'+'_' + str(iteration) + '_',
+                            'vH2Linecapacnew'+'_' + str(iteration) + '_'],
+                           [newGenerators, newStoECap, newStoPCap, newLines, newH2Lines]):
+                s = pd.Series(d)
+                s.to_csv(os.path.join(resultsDir, n + str(currYear) + '.csv'))
+        else:
+            for n, d in zip(['vN' + '_' + str(iteration) + '_', 'vEneBuiltSto' + '_' + str(iteration) + '_',
+                             'vPowBuiltSto' + '_' + str(iteration) + '_', 'vLinecapacnew' + '_' + str(iteration) + '_'],
+                            [newGenerators, newStoECap, newStoPCap, newLines]):
+                s = pd.Series(d)
+                s.to_csv(os.path.join(resultsDir, n + str(currYear) + '.csv'))
+                newH2Lines = 0
+
+    if coOptH2:
+        for n,d in zip(['vN','vEneBuiltSto','vPowBuiltSto','vLinecapacnew','vH2Linecapacnew'],[newGenerators, newStoECap, newStoPCap, newLines, newH2Lines]):
             s = pd.Series(d)
             s.to_csv(os.path.join(resultsDir, n + str(currYear) + '.csv'))
-
-    for n,d in zip(['vN','vEneBuiltSto','vPowBuiltSto','vLinecapacnew'],[newGenerators, newStoECap, newStoPCap, newLines]):
-        s = pd.Series(d)
-        s.to_csv(os.path.join(resultsDir, n + str(currYear) + '.csv'))
-        print('***', n.upper(), '\n', s.loc[s > 0])
-
+            print('***', n.upper(), '\n', s.loc[s > 0])
+    else:
+        for n,d in zip(['vN','vEneBuiltSto','vPowBuiltSto','vLinecapacnew'],[newGenerators, newStoECap, newStoPCap, newLines]):
+            s = pd.Series(d)
+            s.to_csv(os.path.join(resultsDir, n + str(currYear) + '.csv'))
+            print('***', n.upper(), '\n', s.loc[s > 0])
+            newH2Lines = 0
 
     #if rStage == 'MGA':
     #    vN_MGA = pd.DataFrame.from_dict(newGenerators, orient='index')
@@ -72,7 +88,7 @@ def saveCEBuilds(capacExpModel, iteration, rStage, resultsDir, currYear):
 
     #    results_book.close()
 
-    return newGenerators,newStoECap,newStoPCap,newLines
+    return newGenerators,newStoECap,newStoPCap,newLines,newH2Lines
                 
 ########### ADD CAPACITY EXPANSION BUILD DECISIONS TO FLEET ####################
 #Adds generators to fleet
@@ -101,6 +117,10 @@ def addNewGensToFleet(genFleet,newGenerators,newStoECap,newStoPCap,newTechs,curr
                     techRow['Capacity (MW)'] = newStoPCap[tech]/numNewH2Facilities*1000 #1000 to go from GW to MW
                     genFleet = addNewTechRowToFleet(genFleet,techRow)
     genFleet.reset_index(inplace=True,drop=True)
+    for item in list(range(len(genFleet))):
+        if pd.isnull(genFleet.at[item,'Retirement Year']):
+            genFleet['Retirement Year'][item] = 0
+            genFleet['Retirement Year'][item] = genFleet['On Line Year'][item] + genFleet['Lifetime(years)'][item]
     return genFleet
 
 def addNewTechRowToFleet(genFleet,techRow):

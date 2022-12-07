@@ -252,17 +252,17 @@ defFinalSOCblock6h(ltstorageegu,h)$[ord(h)=pHourFinalblock6h].. vFinalSOCblock6h
 defChangeSOCblock6h(ltstorageegu).. vChangeSOCblock6h(ltstorageegu) =e= vFinalSOCblock6h(ltstorageegu) 
                               - vInitSOCblock6h(ltstorageegu);
 setInitSOCblock1hststorageegu(ststorageegu).. vInitSOCblock1h(ststorageegu) =e= 
-                                             pInitSOC(ststorageegu);
+                                    pInitSOC(ststorageegu);
 setInitSOCblockpeaktotal2hststorageegu(ststorageegu).. vInitSOCblockpeaktotal2h(ststorageegu) =e= 
-                                             pInitSOC(ststorageegu);
+                                    pInitSOC(ststorageegu);
 setInitSOCblockpeaknet3hststorageegu(ststorageegu).. vInitSOCblockpeaknet3h(ststorageegu) =e= 
-                                             pInitSOC(ststorageegu);
+                                    pInitSOC(ststorageegu);
 setInitSOCblock4hststorageegu(ststorageegu).. vInitSOCblock4h(ststorageegu) =e= 
-                                             pInitSOC(ststorageegu);
+                                    pInitSOC(ststorageegu);
 setInitSOCblockpeaknetramp5hststorageegu(ststorageegu).. vInitSOCblockpeaknetramp5h(ststorageegu) =e= 
-                                             pInitSOC(ststorageegu);
+                                    pInitSOC(ststorageegu);
 setInitSOCblock6hststorageegu(ststorageegu).. vInitSOCblock6h(ststorageegu) =e= 
-                                             pInitSOC(ststorageegu);
+                                    pInitSOC(ststorageegu);
 
 defSOCtech(storagetech,h).. vStateofchargetech(storagetech,h) =e= pInitSOCtech(storagetech)$[ord(h)=pHourInitblock0h]*vEneBuiltSto(storagetech) + vInitSOCblock1htech(storagetech)$[ord(h)=pHourInitblock1h] + vInitSOCblockpeaktotal2htech(storagetech)$[ord(h)=pHourInitblockpeaktotal2h] + vInitSOCblockpeaknet3htech(storagetech)$[ord(h)=pHourInitblockpeaknet3h] + vInitSOCblock4htech(storagetech)$[ord(h)=pHourInitblock4h] + vInitSOCblockpeaknetramp5htech(storagetech)$[ord(h)=pHourInitblockpeaknetramp5h] + vInitSOCblock6htech(storagetech)$[ord(h)=pHourInitblock6h] +
 	vStateofchargetech(storagetech, h-1)$nonInitH(h) - 
@@ -311,17 +311,17 @@ defFinalSOCblock6htech(ltstoragetech,h)$[ord(h)=pHourFinalblock6h].. vFinalSOCbl
 defChangeSOCblock6htech(ltstoragetech).. vChangeSOCblock6htech(ltstoragetech) =e= vFinalSOCblock6htech(ltstoragetech) 
                               - vInitSOCblock6htech(ltstoragetech);
 setInitSOCblock1hststoragetech(ststoragetech).. vInitSOCblock1htech(ststoragetech) =e= 
-                                             pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
+                                    pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
 setInitSOCblockpeaktotal2hststoragetech(ststoragetech).. vInitSOCblockpeaktotal2htech(ststoragetech) =e= 
-                                             pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
+                                    pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
 setInitSOCblockpeaknet3hststoragetech(ststoragetech).. vInitSOCblockpeaknet3htech(ststoragetech) =e= 
-                                             pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
+                                    pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
 setInitSOCblock4hststoragetech(ststoragetech).. vInitSOCblock4htech(ststoragetech) =e= 
-                                             pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
+                                    pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
 setInitSOCblockpeaknetramp5hststoragetech(ststoragetech).. vInitSOCblockpeaknetramp5htech(ststoragetech) =e= 
-                                             pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
+                                    pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
 setInitSOCblock6hststoragetech(ststoragetech).. vInitSOCblock6htech(ststoragetech) =e= 
-                                             pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
+                                    pInitSOCtech(ststoragetech)*vEneBuiltSto(ststoragetech);
 
 varCost.. vVarcostannual =e= pWeightblock0h*(sum((egu,block0h),vVarcost(egu,block0h))+sum((tech,block0h),vVarcosttech(tech,block0h)))
 	+ pWeightblock1h*(sum((egu,block1h),vVarcost(egu,block1h))+sum((tech,block1h),vVarcosttech(tech,block1h)))

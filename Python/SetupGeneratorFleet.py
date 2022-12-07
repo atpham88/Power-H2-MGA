@@ -42,26 +42,27 @@ def compressAndAddSizeDependentParams(genFleet,compressFleet, regElig, contFlexI
 
 ################################################################################
 def addEIA860Data(genFleet,interconn,stoFTLabels,missingStoDuration=4,missingPSStoDuration=8): #statesForAnalysis
-    gens,plants,storage = importEIA860()
-    genFleet = genFleet.merge(plants[['Plant Code','Latitude','Longitude']],left_on='ORIS Plant Code',right_on='Plant Code',how='left')
+    gens, plants, storage = importEIA860()
+    genFleet = genFleet.merge(plants[['Plant Code', 'Latitude', 'Longitude']], left_on='ORIS Plant Code', right_on='Plant Code', how='left')
     genFleet = fillMissingCoords(genFleet)
-    genFleet = genFleet.merge(storage[['Plant Code','Generator ID','Nameplate Energy Capacity (MWh)','Maximum Charge Rate (MW)','Maximum Discharge Rate (MW)','Technology']],left_on=['ORIS Plant Code','Unit ID'],right_on=['Plant Code','Generator ID'],how='left')
-    #Isolate area of interest
+    genFleet = genFleet.merge(storage[['Plant Code', 'Generator ID', 'Nameplate Energy Capacity (MWh)', 'Maximum Charge Rate (MW)', 'Maximum Discharge Rate (MW)', 'Technology']],
+                              left_on=['ORIS Plant Code', 'Unit ID'], right_on=['Plant Code', 'Generator ID'], how='left')
+    # Isolate area of interest
     needsRegions = mapInterconnToNEEDSRegions()[interconn]
     genFleet = genFleet.loc[genFleet['Region Name'].str.contains('|'.join(needsRegions))]
-    genFleet.reset_index(inplace=True,drop=True)
-    #Replace storage plant type from NEEDS w/ technology from 860
+    genFleet.reset_index(inplace=True, drop=True)
+    # Replace storage plant type from NEEDS w/ technology from 860
     stoRowsMatched = genFleet.loc[(genFleet['FuelType'].isin(stoFTLabels)) & (genFleet['Nameplate Energy Capacity (MWh)'].isnull() == False)]
-    genFleet.loc[stoRowsMatched.index,'PlantType'] = stoRowsMatched['Technology']
-    #Fill in missing storage parameters
+    genFleet.loc[stoRowsMatched.index, 'PlantType'] = stoRowsMatched['Technology']
+    # Fill in missing storage parameters
+    # Fill in rest of storage units (and PS charge & discharge rate)
     stoRowsMissingMatch = genFleet.loc[(genFleet['FuelType'].isin(stoFTLabels)) & (genFleet['Nameplate Energy Capacity (MWh)'].isnull())]
-    genFleet.loc[stoRowsMissingMatch.index,'Nameplate Energy Capacity (MWh)'] = genFleet['Capacity (MW)'] * missingStoDuration
-    genFleet.loc[stoRowsMissingMatch.index,'Maximum Charge Rate (MW)'] = genFleet['Capacity (MW)']
+    genFleet.loc[stoRowsMissingMatch.index, 'Maximum Charge Rate (MW)'] = genFleet['Capacity (MW)']
+    genFleet.loc[stoRowsMissingMatch.index, 'Maximum Discharge Rate (MW)'] = genFleet['Capacity (MW)']
     genFleet.loc[stoRowsMissingMatch.index, 'Nameplate Energy Capacity (MWh)'] = genFleet['Capacity (MW)'] * missingStoDuration
     # Pumped hydropower (as of Y2018 release) is not included in storage dataset. Use 8 hour duration for them.
     genFleet.loc[genFleet['FuelType'] == 'Pumped Storage', 'Nameplate Energy Capacity (MWh)'] = genFleet['Capacity (MW)'] * missingPSStoDuration
     genFleet['Nameplate Energy Capacity (MWh)'] = genFleet['Nameplate Energy Capacity (MWh)'].astype(float)
-
     return genFleet
 
 #Fill generators with missing lat/lon (not in EIA 860) w/ coords from other plants in same county or state
@@ -278,14 +279,13 @@ def getMatchingPhorumValue(ucData,fuel,plantType,size,paramName):
 
 # Return dictionary of fleet fuel : UC fuel
 def mapFuels():
-    return {'Bituminous': 'Coal', 'Petroleum Coke': 'Pet. Coke',
-            'Subbituminous': 'Coal', 'Lignite': 'Coal', 'Natural Gas': 'NaturalGas',
-            'Distillate Fuel Oil': 'Oil', 'Hydro': 'Hydro', 'Landfill Gas': 'LF Gas',
-            'Biomass': 'Biomass', 'Solar': 'Solar', 'Non-Fossil Waste': 'Non-Fossil',
-            'MSW': 'MSW', 'Pumped Storage': 'Hydro', 'Residual Fuel Oil': 'Oil',
-            'Wind': 'Wind', 'Nuclear Fuel': 'Nuclear', 'Coal': 'Coal', 'Energy Storage': 'Storage',
-            'Hydrogen': 'Storage', 'Storage': 'Storage', 'Fossil Waste': 'Oil', 'Tires': 'Non-Fossil',
-            'Waste Coal': 'Coal', 'Geothermal': 'Geothermal'}
+    return {'Bituminous': 'Coal', 'Petroleum Coke': 'Pet. Coke', 'Subbituminous': 'Coal', 'Lignite': 'Coal',
+            'Natural Gas': 'NaturalGas', 'Distillate Fuel Oil': 'Oil', 'Hydro': 'Hydro', 'Landfill Gas': 'LF Gas',
+            'Biomass': 'Biomass', 'Solar': 'Solar', 'Non-Fossil Waste': 'Non-Fossil', 'MSW': 'MSW',
+            'Pumped Storage': 'Hydro', 'Residual Fuel Oil': 'Oil', 'Wind': 'Wind', 'Nuclear Fuel': 'Nuclear',
+            'Coal': 'Coal','Energy Storage':'Storage', 'Hydrogen':'Storage','Storage':'Storage','Fossil Waste':'Oil',
+            'Tires':'Non-Fossil', 'Waste Coal':'Coal','Geothermal':'Geothermal','Electricity':'Electricity',
+            'Hydrogen':'Hydrogen'}
     #EIA860 fuels
     # fleetFuelToPhorumFuelMap = {'BIT':'Coal','PC':'Pet. Coke','SGC':'Coal',
     #         'SUB':'Coal','LIG':'Coal','RC':'Coal','NG':'NaturalGas','OG':'NaturalGas',

@@ -5,17 +5,25 @@ $onEmpty
 Sets
 *Existing generators
          egu                             existing generators
-                 renewegu(egu)           existing wind and solar generators
-                 windegu(renewegu)       existing wind generators
-                 solaregu(renewegu)      existing solar generators
-                 hydroegu(renewegu)
-                 genegu(egu)                  egus that are not dacs or storage
-                 dacsegu(egu)                 direct air capture units
-                 notdacsegu(egu)              egus that are not dac units
-                 storageegu(egu)              storage units
+         renewegu(egu)                   existing wind and solar generators
+         windegu(renewegu)               existing wind generators
+         solaregu(renewegu)              existing solar generators
+         hydroegu(renewegu)
+         genegu(egu)                     egus that are not dacs or storage
+         dacsegu(egu)                    direct air capture units
+         notdacsegu(egu)                 egus that are not dac units
+         storageegu(egu)                 storage units
+         h2storageegu(storageegu)        storage units that are hydrogen
+         nonh2storageegu(storageegu)     non h2 storage units
+         h2egu(egu)                      egus that produce h2 (not electricity producing egus) (ton)
+         egenegu(egu)                    egus that produce electricity
+         electrolyzeregu(egu)            existing electrolyzer (ton)
+         h2eegu(egu)                     egus that produce electricty from h2 (GWh)
+         fuelcellegu(h2eegu)
+         h2turbineegu(h2eegu)
          h                               hours
-                 z                                                              zones
-                 l                                                              lines
+                 z                       zones
+                 l                       lines
          ;
 
 Parameters
@@ -32,24 +40,28 @@ Parameters
 *EMISSIONS COST [$/short ton]
          pCO2cost
 *LEAST-COST OBJ FUNCTION LIMIT
-         pObjLimit
+         pObjLimit        
+*Conversion[MWh/kg or GWh/ton]         
+         pElectrolyzerCon
+         pFuelCellCon
+         pH2TurbineCon
 *RENEWABLE GENERATION CAPS
          pMaxgenwind(z,h)                  max hourly generation for existing wind [GWh]
          pMaxgensolar(z,h)                 max hourly generation for existing solar [GWh]
 *STORAGE PARAMETERS
-                 pStoinenergymarket      whether storage can provide energy (1) or not (0)
+         pStoinenergymarket              whether storage can provide energy (1) or not (0)
          pEfficiency(storageegu)         round trip storage efficiency
          pCapaccharge(storageegu)        max charging capacity (GW)
          pMaxsoc(storageegu)             max stored energy (GWh)
          pMinsoc(storageegu)             min stored energy (GWh)
 *ZONAL PROPERTIES
-                pGenzone(egu)            zone in which egu is located
-                pDemand(z,h)             hourly electricity demand [GWh]
-                pH2Demand(z,h)             annual pure hydrogen demand (metric ton)
-                pLinesource(l)           zone that is the source of line l
-                pLinesink(l)             zone that is the sink of line l
-                pLinecapac(l)            MW capacity of line l
-                pH2LineCapac(l)        Existing hydrogen pipeline capacity (=0 in metric ton)
+                pGenzone(egu)                                   zone in which egu is located
+                pDemand(z,h)                      hourly electricity demand [GWh]
+                pH2Demand(z,h)
+                pLinesource(l)                                  zone that is the source of line l
+                pLinesink(l)                                    zone that is the sink of line l
+                pLinecapac(l)                                   MW capacity of line l
+                pH2LineCapac(l)
                 pTransEff
 *HOURLY ELECTRICITY DEMAND [GWh]
          pDemandShifter                  demand shifter (percentage)
@@ -77,8 +89,8 @@ Parameters
 
 $if not set gdxincname $abort 'no include file name for data file provided'
 $gdxin %gdxincname%
-$load egu, renewegu, windegu, solaregu, hydroegu, h, z, l, dacsegu, storageegu
-$load pCapac, pHr, pOpcost, pRamprate, pCO2emrate, pCO2cost, pObjLimit
+$load egu, renewegu, windegu, solaregu, hydroegu, h, z, l, dacsegu, storageegu, h2storageegu, h2egu, h2eegu, fuelcellegu, h2turbineegu, electrolyzeregu
+$load pCapac, pHr, pOpcost, pRamprate, pCO2emrate, pCO2cost, pElectrolyzerCon, pFuelCellCon, pH2TurbineCon
 $load pMaxgensolar, pMaxgenwind
 $load pH2Demand, pH2LineCapac
 $load pStoinenergymarket, pEfficiency, pMaxsoc, pMinsoc, pCapaccharge
@@ -90,7 +102,9 @@ $gdxin
 
 *DEFINE EGU SUBSETS
 notdacsegu(egu) = not dacsegu(egu);
+egenegu(egu) = not h2egu(egu);
 genegu(egu) = not (dacsegu(egu) + storageegu(egu));
+nonh2storageegu(storageegu) = not h2storageegu(storageegu);
 
 *CALCULATE MAX RESERVE OFFERS
 pMaxflexoffer(egu) = pFlexeligible(egu)*pRamprate(egu)*pRampratetoflexreservescalar;
@@ -106,31 +120,41 @@ Variables
 
 Positive variables
 *GENERATION AND RESERVES
-                 vGen(egu,h)                     hourly electricity generation by existing plant [GWh]
+         vGen(egu,h)                     hourly electricity generation by existing plant [GWh or ton]
          vRegup(egu,h)                   hourly reg up reserves provided by existing plant [GWh]
          vFlex(egu,h)
          vCont(egu,h)
 *STORAGE VARIABLES
-         vStateofcharge(storageegu,h)            "energy stored in storage unit at end of hour h (GWh)"
-         vCharge(storageegu,h)                   "charged energy by storage unit in hour h (GWh)"
+         vStateofcharge(storageegu,h)            "energy stored in storage unit at end of hour h (GWh or ton)"
+         vCharge(storageegu,h)                   "charged energy by storage unit in hour h (GWh or ton)"
+*Inputs for existing electrolyzers, fuel cells and H2 turbines:
+         vELCharge(electrolyzeregu,h)                electricity input to power electrolyzer
+         vH2TCharge(h2eegu,h)                     hydrogen input to power H2T tech (hydrogen turbines + fuel cells)         
 *EMISSIONS
          vCO2ems(egu,h)
 *TRANSMISSION LINE FLOWS
                 vLineflow(l,h)
+                vH2Lineflow(l,h)
          ;
 
 Equations
 *Op costs
          calcvarcosts(egu,h)
 *Generation and reserve constraints
-         limitallresup(egu,h)            limit total generation plus up reserves of existing plants to capacity
+         limitallresup(egu,h)                           limit total generation plus up reserves of existing plants to capacity
 *Renewable generation
          limitWindGen(z,h)
                  limitSolarGen(z,h)
 *Line flows
 *               limitLineFlow(l,h)
 *Carbon limits
-         calcco2ems(egu,h)                    sum annual co2 emissions
+         calcco2ems(egu,h)                              sum annual co2 emissions
+*Limit of h2 output from electrolyzers         
+         electrolyzerconversion(electrolyzeregu,h)
+*Limit of electricity output from fuel cells          
+         fuelcellconversion(fuelcellegu,h)
+*Limit of electricity output from H2 turbines          
+         h2turbineconversion(h2turbineegu,h)
          ;
 
 ******************VAR COSTS*****************
@@ -177,4 +201,16 @@ limitSolarGen(z,h).. pMaxgensolar(z,h) =g= sum(solaregu$[pGenzone(solaregu)=ORD(
 
 ******************CO2 EMISSIONS CONSTRAINT******************
 calcco2ems(egu,h)..   vCO2ems(egu,h) =e= vGen(egu,h)*pHr(egu)*pCO2emrate(egu);
+************************************************************
+
+******************ELECTROLYZER CONSTRAINT******************
+electrolyzerconversion(electrolyzeregu,h)..   vELCharge(electrolyzeregu,h) =e= vGen(electrolyzeregu,h)*pElectrolyzerCon;
+************************************************************
+
+******************FUEL CELL CONSTRAINT******************
+fuelcellconversion(fuelcellegu,h)..   vH2TCharge(fuelcellegu,h) =e= vGen(fuelcellegu,h)*pFuelCellCon;
+************************************************************
+
+******************H2 TURBINE CONSTRAINT******************
+h2turbineconversion(h2turbineegu,h)..   vH2TCharge(h2turbineegu,h) =e= vGen(h2turbineegu,h)*pH2TurbineCon;
 ************************************************************

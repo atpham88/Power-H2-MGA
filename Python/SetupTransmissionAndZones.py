@@ -59,8 +59,8 @@ def setupTransmissionAndZones(genFleetFull,transRegions,interconn,balAuths):
     if interconn == 'ERCOT': genFleet = pd.concat([genERCOTRegionReassign(genFleetFull.copy()),genFleet])
     checkZones(genFleet,transRegions) 
     #Get transmission constraints between zones
-    limits,costs,dists = getTransmissionData(interconn,transRegions,pRegionShapes)
-    return genFleet,transRegions,limits,dists,costs,pRegionShapes
+    limits,limitsH2,costs,dists = getTransmissionData(interconn,transRegions,pRegionShapes)
+    return genFleet,transRegions,limits,limitsH2,dists,costs,pRegionShapes
 
 ############################
 def loadRegions(transRegions):
@@ -126,7 +126,9 @@ def getTransmissionData(interconn,transRegions,pRegionShapes):
     limits['TotalCapacity'] = limits['AC'] + limits['DC']
     # Add GAMS symbols
     for df in [dists,limits,costs]: df['GAMS Symbol'] = df['r'] + df['rr']
-    return limits,costs,dists
+    limitsH2 = limits
+    limitsH2['TotalCapacity'] = limits['TotalCapacity'] * 0
+    return limits,limitsH2,costs,dists
 
 def importTransmissionData(interconn):
     limits = pd.read_csv(os.path.join('Data','REEDS','transmission_capacity_initial.csv'),header=0)

@@ -33,15 +33,37 @@ def getH2AnnualDemand(currYear, transRegions, pRegionShapes, h2DemandScr):
     h2GrBiofuel = (h2Biofuel_2050 / (h2Biofuel_2015 + 0.0000001)) ** (1 / (2050 - baseYear)) - 1
     h2GrOthers = (h2Others_2050 / h2Others_2015) ** (1 / (2050 - baseYear)) - 1
 
-    h2DemandAmmoniaCurr = h2DemandAmmonia * (1 + h2GrAmmonia) ** (currYear - baseYear)
-    h2DemandBiofuelCurr = h2DemandBiofuel * (1 + h2GrBiofuel) ** (currYear - baseYear)
-    h2DemandMetalCurr = h2DemandMetal * (1 + h2GrOthers) ** (currYear - baseYear)
-    h2DemandMethanolCurr = h2DemandMethanol * (1 + h2GrOthers) ** (currYear - baseYear)
-    h2DemandRefiningCurr = h2DemandRefining * (1 + h2GrRefining) ** (currYear - baseYear)
-    h2DemandSynfuelCurr = h2DemandSynfuel * (1 + h2GrOthers) ** (currYear - baseYear)
+    h2DemandAmmonia_2015 = h2DemandAmmonia / ((1 + h2GrAmmonia) ** (2050 - baseYear))
+    h2DemandBiofuel_2015 = h2DemandBiofuel / ((1 + h2GrBiofuel) ** (2050 - baseYear))
+    h2DemandMetal_2015 = h2DemandMetal / ((1 + h2GrOthers) ** (2050 - baseYear))
+    h2DemandMethanol_2015 = h2DemandMethanol / ((1 + h2GrOthers) ** (2050 - baseYear))
+    h2DemandRefining_2015 = h2DemandRefining / ((1 + h2GrRefining) ** (2050 - baseYear))
+    h2DemandSynfuel_2015 = h2DemandSynfuel / ((1 + h2GrOthers) ** (2050 - baseYear))
+
+    h2DemandAmmoniaCurr = h2DemandAmmonia_2015 * (1 + h2GrAmmonia) ** (currYear - baseYear)
+    h2DemandBiofuelCurr = h2DemandBiofuel_2015 * (1 + h2GrBiofuel) ** (currYear - baseYear)
+    h2DemandMetalCurr = h2DemandMetal_2015 * (1 + h2GrOthers) ** (currYear - baseYear)
+    h2DemandMethanolCurr = h2DemandMethanol_2015 * (1 + h2GrOthers) ** (currYear - baseYear)
+    h2DemandRefiningCurr = h2DemandRefining_2015 * (1 + h2GrRefining) ** (currYear - baseYear)
+    h2DemandSynfuelCurr = h2DemandSynfuel_2015 * (1 + h2GrOthers) ** (currYear - baseYear)
 
     h2DemandTotNoTransport = h2DemandAmmoniaCurr + h2DemandBiofuelCurr + h2DemandMetalCurr + h2DemandMethanolCurr \
                              + h2DemandRefiningCurr + h2DemandSynfuelCurr
+    h2demand = importHourlyH2Demand(currYear, transRegions, h2DemandTotNoTransport)
+    return h2demand
 
-    return h2DemandTotNoTransport
+def importHourlyH2Demand(currYear, transRegions, h2AnnualDemand):
+    # Initialize df
+    if currYear > 2050: currYear = 2050
+    dates = pd.date_range('1/1/' + str(currYear) + ' 0:00', '12/31/' + str(currYear) + ' 23:00', freq='H')
+    dates = dates[~((dates.month == 2) & (dates.day == 29))]  # ditch leap day
+    h2demand = pd.DataFrame(index=dates)
+
+    h2AnnualDemandTranspose = h2AnnualDemand.to_frame()
+    h2AnnualDemandTranspose = h2AnnualDemandTranspose.T
+
+    for zone, pRegions in transRegions.items():
+        h2demand[zone] = float(h2AnnualDemandTranspose[zone]/len(dates))
+
+    return h2demand
 

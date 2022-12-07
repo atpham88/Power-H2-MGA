@@ -13,14 +13,12 @@ from WriteTimeDependentConstraints import createInitSOCName
 ################################################################################
 
 ##### ADD HOURLY DEMAND PARAMETERS (GWh)
-def addDemandParam(db, demand, hourSet, zoneSet, demandShifter, demandShiftingBlock, mwToGW):
+def addDemandParam(db, demand, h2Demand, hourSet, zoneSet, demandShifter, demandShiftingBlock, mwToGW):
     add2dParam(db, convert2DTimeseriesDfToDict(demand, 1 / mwToGW), zoneSet, hourSet, 'pDemand')
+    add2dParam(db, convert2DTimeseriesDfToDict(h2Demand, 1), zoneSet, hourSet, 'pH2Demand')
     add0dParam(db, 'pDemandShifter', demandShifter)
     add0dParam(db, 'pDemandShiftingBlock', demandShiftingBlock)
 
-#### ADD ANNUAL HYDROGEN DEMAND (ton)
-def addH2DemandParam(db, h2AnnualDemand, zoneSet):
-    add1dParam(db, h2AnnualDemand.to_dict(), zoneSet, h2AnnualDemand.index, 'pH2Demand')
 
 ##### ADD EXISTING OR NEW GENERATOR PARAMETERS (scalars account for unit conversions)
 def addGenParams(db, df, genSet, mwToGW, lbToShortTon, zoneOrder, newTechs=False):
@@ -105,8 +103,10 @@ def addLineParams(db,lineLimits,transmissionEff,lineSet,zoneOrder,mwToGW):
     add0dParam(db,'pTransEff',transmissionEff)
     # Transmission line sources & sinks
     addLineSourceSink(db,lineLimits,lineSet,zoneOrder)
+
+def addH2LineParams(db, H2lineLimits, transmissionEff, H2lineSet, zoneOrder, mwToGW):
     # Existing h2 pipeline between zone = 0:
-    add1dParam(db, pd.Series(0, index=lineLimits['GAMS Symbol']).to_dict(), lineSet, lineLimits['GAMS Symbol'], 'pH2ExLineCapac')
+    add1dParam(db, pd.Series(H2lineLimits['TotalCapacity'].values.astype(float)/mwToGW, index=H2lineLimits['GAMS Symbol']).to_dict(), H2lineSet, H2lineLimits['GAMS Symbol'],'pH2Linecapac')
 
 
 def addLineSourceSink(db, df, lineSet, zoneOrder, techLbl=''):
@@ -122,17 +122,31 @@ def addLineSourceSink(db, df, lineSet, zoneOrder, techLbl=''):
 ##################### CAPACITY EXPANSION PARAMETERS ############################
 ################################################################################
 ##### ADD NEW TECH PARAMS FOR CE
-def addTechCostParams(db, df, genSet, stoSet, mwToGW):
-    # Fixed O&M (thousand$/GW/yr)
-    add1dParam(db, getGenParamDict(df, 'FOM(2012$/MW/yr)', mwToGW / 1000), genSet, df['GAMS Symbol'], 'pFom')
-    # Overnight capital cost (thousand$/GW)
-    add1dParam(db, getGenParamDict(df, 'CAPEX(2012$/MW)', mwToGW / 1000), genSet, df['GAMS Symbol'], 'pOcc')
-    # Lifetime (years)
-    add1dParam(db, getGenParamDict(df, 'Lifetime(years)'), genSet, df['GAMS Symbol'], 'pLife')
-    # Power & energy capital costs for storage (thousand$/GW & thousand$/GWh)
-    sto = df.loc[df['ThermalOrRenewableOrStorage'] == 'storage']
-    add1dParam(db, getGenParamDict(sto, 'CAPEX(2012$/MW)', mwToGW / 1000), stoSet, sto['GAMS Symbol'], 'pPowOcc')
-    add1dParam(db, getGenParamDict(sto, 'ECAPEX(2012$/MWH)', mwToGW / 1000), stoSet, sto['GAMS Symbol'], 'pEneOcc')
+def addTechCostParams(db, df, coOptH2, genSet, stoSet, mwToGW):
+    if not coOptH2:
+        # Fixed O&M (thousand$/GW/yr):
+        add1dParam(db, getGenParamDict(df, 'FOM(2012$/MW/yr)', mwToGW / 1000), genSet, df['GAMS Symbol'], 'pFom')
+        # Overnight capital cost (thousand$/GW)
+        add1dParam(db, getGenParamDict(df, 'CAPEX(2012$/MW)', mwToGW / 1000), genSet, df['GAMS Symbol'], 'pOcc')
+        # Lifetime (years)
+        add1dParam(db, getGenParamDict(df, 'Lifetime(years)'), genSet, df['GAMS Symbol'], 'pLife')
+
+        # Power & energy capital costs for storage (thousand$/GW & thousand$/GWh)
+        sto = df.loc[df['ThermalOrRenewableOrStorage'] == 'storage']
+        add1dParam(db, getGenParamDict(sto, 'CAPEX(2012$/MW)', mwToGW / 1000), stoSet, sto['GAMS Symbol'], 'pPowOcc')
+        add1dParam(db, getGenParamDict(sto, 'ECAPEX(2012$/MWH)', mwToGW / 1000), stoSet, sto['GAMS Symbol'], 'pEneOcc')
+    else:
+        # Fixed O&M (thousand$/GW/yr):
+        add1dParam(db, getGenParamDict(df, 'FOM(2012$/MW/yr)', mwToGW / 1000), genSet, df['GAMS Symbol'], 'pFom')
+        # Overnight capital cost (thousand$/GW)
+        add1dParam(db, getGenParamDict(df, 'CAPEX(2012$/MW)', mwToGW / 1000), genSet, df['GAMS Symbol'], 'pOcc')
+        # Lifetime (years)
+        add1dParam(db, getGenParamDict(df, 'Lifetime(years)'), genSet, df['GAMS Symbol'], 'pLife')
+
+        # Power & energy capital costs for storage (thousand$/GW & thousand$/GWh)
+        sto = df.loc[df['ThermalOrRenewableOrStorage'] == 'storage']
+        add1dParam(db, getGenParamDict(sto, 'CAPEX(2012$/MW)', mwToGW / 1000), stoSet, sto['GAMS Symbol'], 'pPowOcc')
+        add1dParam(db, getGenParamDict(sto, 'ECAPEX(2012$/MWH)', mwToGW / 1000), stoSet, sto['GAMS Symbol'], 'pEneOcc')
 
 
 ##### ADD PLANNING RESERVE MARGIN FRACTION PARAMETER (GW)
@@ -168,6 +182,13 @@ def addRenewTechCFParams(db, renewTechSet, hourSet, newCFs):
 def addCO2Cap(db, co2Cap):
     add0dParam(db, 'pCO2emcap', co2Cap)
 
+##### ADD CONVERTERS (ELECTROLYZERS, FUEL CELLS, H2 TURBINES)
+def addElectrolyzerCon(db, electrolyzerCon):
+    add0dParam(db, 'pElectrolyzerCon', electrolyzerCon)
+def addFuelCellCon(db, fuelcellCon):
+    add0dParam(db, 'pFuelCellCon', fuelcellCon)
+def addH2TurbineCon(db, h2TurbineCon):
+    add0dParam(db, 'pH2TurbineCon', h2TurbineCon)
 
 ##### ADD CE PARAMETERS FOR BLOCKS
 def addSeasonDemandWeights(db, blockWeights):
@@ -181,7 +202,7 @@ def addBlockSOCScalars(db, scalars):
 
 
 ##### ADD LIMIT ON MAX NUMBER OF NEW BUILDS PER TECH (#)
-def addMaxNewBuilds(db, df, thermalSet, stoTechSet, dacsSet, CCSSet, maxCapPerTech, mwToGW, interconn):
+def addMaxNewBuilds(db, df, thermalSet, stoTechSet, dacsSet, CCSSet, maxCapPerTech, coOptH2, mwToGW):
     # Wind & solar
     for pt in ['Wind', 'Solar']:
         genCaps = df.loc[df['FuelType'] == pt.capitalize(), 'Capacity (MW)']
@@ -190,6 +211,12 @@ def addMaxNewBuilds(db, df, thermalSet, stoTechSet, dacsSet, CCSSet, maxCapPerTe
     pt = 'Nuclear'
     genCaps = df.loc[df['PlantType'] == pt.capitalize(), 'Capacity (MW)']
     add0dParam(db, 'pNMaxNuclear', np.ceil(maxCapPerTech[pt] / genCaps.mean()))
+
+    if coOptH2:
+        pt = 'SR'
+        genCaps = df.loc[df['PlantType'] == pt, 'Capacity (MW)']
+        add0dParam(db, 'pNMaxSR', np.ceil(maxCapPerTech[pt] / genCaps.mean()))
+
     # CCS
     pt1 = 'Coal Steam CCS'
     pt2 = 'Combined Cycle CCS'
@@ -206,7 +233,6 @@ def addMaxNewBuilds(db, df, thermalSet, stoTechSet, dacsSet, CCSSet, maxCapPerTe
     ft = 'DAC'
     techs = df.loc[df['FuelType'] == ft]
     techs.index = techs['GAMS Symbol']
-
     maxBuilds = np.ceil(maxCapPerTech[ft.capitalize()] / techs['Capacity (MW)']).to_dict()
     add1dParam(db, maxBuilds, dacsSet, techs['GAMS Symbol'], 'pNMaxDACS')
     # Storage. Use positive continuous variable for added power & energy separately,
@@ -219,6 +245,28 @@ def addMaxNewBuilds(db, df, thermalSet, stoTechSet, dacsSet, CCSSet, maxCapPerTe
     maxESto = peRatio * techs['Max Capacity (MW)'] / mwToGW
     add1dParam(db, (techs['Max Capacity (MW)'] / mwToGW).to_dict(), stoTechSet, techs['GAMS Symbol'], 'pPMaxSto')
     add1dParam(db, maxESto.to_dict(), stoTechSet, techs['GAMS Symbol'], 'pEMaxSto')
+
+    if coOptH2:
+        # SMR
+        pt = 'SMR'
+        genCaps = df.loc[df['PlantType'] == pt, 'Capacity (MW)']
+        add0dParam(db, 'pNMaxSMR', np.ceil(maxCapPerTech[pt] / genCaps.mean()))
+        pt = 'SMR CCS'
+        genCaps = df.loc[df['PlantType'] == pt, 'Capacity (MW)']
+        add0dParam(db, 'pNMaxSMRCCS', np.ceil(maxCapPerTech[pt] / genCaps.mean()))
+
+        # Electrolyzer
+        pt = 'Electrolyzer'
+        genCaps = df.loc[df['PlantType'] == pt, 'Capacity (MW)']
+        add0dParam(db, 'pNMaxElectrolyzer', np.ceil(maxCapPerTech[pt] / genCaps.mean()))
+        # Fuel Cell
+        pt = 'Fuel Cell'
+        genCaps = df.loc[df['PlantType'] == pt, 'Capacity (MW)']
+        add0dParam(db, 'pNMaxFuelcell', np.ceil(maxCapPerTech[pt] / genCaps.mean()))
+        # Fuel Cell
+        pt = 'H2 Turbine'
+        genCaps = df.loc[df['PlantType'] == pt, 'Capacity (MW)']
+        add0dParam(db, 'PNMaxH2Turbine', np.ceil(maxCapPerTech[pt] / genCaps.mean()))
 
 ##### ADD NEW LINE PARAMETERS
 def addNewLineParams(db, lineDists, lineCosts, lineSet, maxCapPerTech, buildLimitsCase, zoneOrder, interconn, mwToGW, lineLife=60):
@@ -241,7 +289,7 @@ def addNewLineParams(db, lineDists, lineCosts, lineSet, maxCapPerTech, buildLimi
     # H2 pipeline cost = $3.72M/mile (The Future of Hydrogen, IEA report)
     h2Cost = 3.72 * 1e6 * dist
     h2LineLife = 40  # Years
-    maxH2LineCapac = 38.8  # per unit if pipeline unit (metric ton)
+    maxH2LineCapac = 38.8  # per unit if pipeline unit ( ton)
     add1dParam(db, h2Cost.to_dict(), lineSet, h2Cost.index, 'pH2Linecost')
     add0dParam(db, 'pH2Lifeline', h2LineLife)
     # Maximum H2 pipeline capacity (metric ton)
