@@ -4,13 +4,17 @@ from AuxFuncs import *
 from GAMSAuxFuncs import *
 import copy, csv, pandas as pd,os,numpy as np
 
-def saveCapacExpOperationalData(ceModel,genFleet,newTechsCE,hoursForCE,transRegions,lineLimits,resultsDir,modelName,year):
+def saveCapacExpOperationalData(ceModel,genFleet,newTechsCE,hoursForCE,transRegions,
+                                lineLimits,resultsDir,modelName,year,rStage,iteration):
     saveGeneratorResults(ceModel,genFleet,hoursForCE,resultsDir,modelName,year)
     saveGeneratorResults(ceModel,newTechsCE,hoursForCE,resultsDir,modelName,year,True)
     saveZonalSystemResults(ceModel,transRegions,hoursForCE,resultsDir,modelName,year)
     saveLineFlows(ceModel,lineLimits,hoursForCE,resultsDir,modelName,year)
-    for n in ['vCO2emsannual','vZannual', 'vVarcostannual','vFixedcostannual']:
-        write2dListToCSV([[extract0dVarResultsFromGAMSModel(ceModel,n)]],os.path.join(resultsDir,n + modelName + str(year) + '.csv'))
+    for n in ['vCO2emsannual', 'vZannual', 'vVarcostannual', 'vFixedcostannual']:
+        if rStage == 'CE':
+            write2dListToCSV([[extract0dVarResultsFromGAMSModel(ceModel, n)]], os.path.join(resultsDir, n + modelName + str(year) + '.csv'))
+        else:
+            write2dListToCSV([[extract0dVarResultsFromGAMSModel(ceModel, n)]], os.path.join(resultsDir, n + modelName + str(year) + '_' + str(iteration)+'.csv'))
 
 def saveGeneratorResults(ceModel,gens,hoursForCE,resultsDir,modelName,year,newTechs=False):
     for v in ['vGen','vRegup','vFlex','vCont','vTurnon','vTurnoff','vOnoroff','vCharge','vStateofcharge']:

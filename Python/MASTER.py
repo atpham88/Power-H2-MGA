@@ -220,7 +220,6 @@ def masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDe
             if iteration == 1:
                 mgaWeight = 0
 
-
             (genFleet, genFleetPriorCE, lineLimits, H2lineLimits, priorCEModel, priorHoursCE,
              newGenspD, mgaWeight, maxZoneCap, iterationLast) = runCapacityExpansion(genFleet, demandProfile, startYear, currYear, planningReserveMargin,
                                                                 discountRate, fuelPrices, currCo2Cap, numBlocks, daysPerBlock, daysPerPeak,
@@ -403,7 +402,8 @@ def runCapacityExpansion(genFleet, demand, startYear, currYear, planningReserveM
         df.to_csv(os.path.join(resultsDir, n + 'FullYr' + str(currYear) + '.csv'))
 
     for df, n in zip([demandCE, h2DemandCE, windGenCE, solarGenCE, newCfsCE, newTechsCE, contCE, regUpCE, flexCE, regUpIncCE, flexIncCE, hydroGenCE],
-                     ['demand', 'h2Demand', 'windGen', 'solarGen', 'windAndSolarNewCFs', 'newTechs', 'contRes', 'regUpRes', 'flexRes', 'regUpInc', 'flexInc', 'hydroGen']):
+                     ['demand', 'h2Demand', 'windGen', 'solarGen', 'windAndSolarNewCFs', 'newTechs',
+                      'contRes', 'regUpRes', 'flexRes', 'regUpInc', 'flexInc', 'hydroGen']):
         df.to_csv(os.path.join(resultsDir, n + 'CE' + str(currYear) + '.csv'))
 
     hoursForCE.to_csv(os.path.join(resultsDir, 'hoursCEByBlock' + str(currYear) + '.csv'))
@@ -441,9 +441,9 @@ def runCapacityExpansion(genFleet, demand, startYear, currYear, planningReserveM
             capacExpModel, ms, ss = runGAMS('CEWith{o}.gms'.format(o=ceOps), ws, db)
     elif rStage == 'MGA':
         if coOptH2:
-            capacExpModel, ms, ss = runGAMS('MGAWith{o}.gms'.format(o=ceOps), ws, db)
-        else:
             capacExpModel, ms, ss = runGAMS('MGAH2With{o}.gms'.format(o=ceOps), ws, db)
+        else:
+            capacExpModel, ms, ss = runGAMS('MGAWith{o}.gms'.format(o=ceOps), ws, db)
 
     # ########## SAVE AND PROCESS CE RESULTS
     newGens, newStoECap, newStoPCap, newLines, newH2Lines = saveCEBuilds(capacExpModel, iteration, rStage, resultsDir, currYear, coOptH2)
@@ -473,7 +473,8 @@ def runCapacityExpansion(genFleet, demand, startYear, currYear, planningReserveM
 
     if rStage == 'CE' or (rStage == 'MGA' and iteration == iterationLast):
         write2dListToCSV([['ms', 'ss'], [ms, ss]], os.path.join(resultsDir, 'msAndSsCE' + str(currYear) + '.csv'))
-        saveCapacExpOperationalData(capacExpModel, genFleetForCE, newTechsCE, hoursForCE, transRegions, lineLimits, resultsDir, 'CE', currYear)
+    saveCapacExpOperationalData(capacExpModel, genFleetForCE, newTechsCE, hoursForCE, transRegions, lineLimits,
+                                resultsDir, 'CE', currYear,rStage,iteration)
     genFleet = addNewGensToFleet(genFleet, newGens, newStoECap, newStoPCap, newTechsCE, currYear)
     lineLimits = addNewLineCapToLimits(lineLimits, newLines)
     genFleet.to_csv(os.path.join(resultsDir, 'genFleetAfterCE' + str(currYear) + '.csv'))
@@ -505,7 +506,6 @@ def createGAMSWorkspaceAndDatabase(runOnSC):
     ws = GamsWorkspace(working_directory=gamsFileDir, system_directory=gamsSysDir)
     db = ws.add_database()
     return ws, db, gamsFileDir
-
 
 def runGAMS(gamsFilename, ws, db):
     t0 = time.time()

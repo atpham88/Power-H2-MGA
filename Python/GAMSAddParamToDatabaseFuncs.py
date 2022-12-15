@@ -42,7 +42,6 @@ def addGenParams(db, df, genSet, mwToGW, lbToShortTon, zoneOrder, newTechs=False
         # Initial weight:
         add1dParam(db, getGenParamDict(df, 'Variable Weight'), genSet, df['GAMS Symbol'], 'pWeight' + techLbl)
 
-
 def getZonalParamDict(df, zoneOrder, zonalCol='region'):
     zoneDict = df[zonalCol].map(zoneOrder).astype(int)
     zoneDict.index = df['GAMS Symbol']

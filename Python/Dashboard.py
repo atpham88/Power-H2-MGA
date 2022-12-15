@@ -5,7 +5,7 @@ from MASTER import *
 def main():
     modelType = 'MGA'                                    # Type of model to run (CE or MGA)
 
-    coOptH2 = False
+    coOptH2 = True
     h2DemandScr = 'Reference'                           # Scenario for H2 demand
 
     if modelType == 'CE':
@@ -46,7 +46,7 @@ def main():
     else:
         projectPath = "/home/anph/projects/PH2/Model/Python/"
 
-    co2EmsCapInFinalYear = 0                            # cap on co2 emissions in final year of CE
+    co2EmsCapInFinalYear = 130594820*0.05                            # cap on co2 emissions in final year of CE
     yearIncDACS = 2100                                  # year to include DACS - set beyond end period if don't want DACS
 
     # ### CE AND UCED/ED OPTIONS
@@ -80,18 +80,18 @@ def main():
     useCO2Price = False                                 # whether to calc & inc CO2 price in operations run
 
     # ### HYDROGEN - ELECTRICITY CONVERSION:
-    electrolyzerCon = 51.4  # 51.4 MWh >> 1 ton H2
-    fuelcellCon = 0.051  # 0.051 ton H2 >> 1 MWh (based on 60% efficiency Fuel Cell)
-    h2TurbineCon = 0.047  # 0.047 ton H2 >> 1 MWh (based on 65% efficiency H2 turbine)
+    electrolyzerCon = 51.4                              # 51.4 MWh >> 1 ton H2
+    fuelcellCon = 0.051                                 # 0.051 ton H2 >> 1 MWh (based on 60% efficiency Fuel Cell)
+    h2TurbineCon = 0.047                                # 0.047 ton H2 >> 1 MWh (based on 65% efficiency H2 turbine)
 
     # ### MGA OPTIONS:
-    maxIter = 3                                       # Maximum number of iterations
+    maxIter = 30                                         # Maximum number of iterations
 
     # ### LIMITS ON TECHNOLOGY DEPLOYMENT (max added MW per CE run (W&S by cell))
     # wind: 2000, solar: 17000
     maxCapPerTech = {'Wind': 20000 * reDownFactor, 'Solar': 170000 * reDownFactor, 'Thermal': 999999, 'Combined Cycle': 5000000000,
                      'Storage': 100000000, 'Dac': -9999999, 'CCS': 9999999999, 'Nuclear': 9999999999, 'Battery Storage': 1000000000,
-                     'Hydrogen': 100000000, 'Transmission': 100000000, 'SR':999999999999, 'Fuel Cell': 999999999999, 'H2 Turbine': 9999999999,
+                     'Hydrogen': 100000000, 'Transmission': 100000000, 'SR':1000, 'Fuel Cell': 999999999999, 'H2 Turbine': 9999999999,
                      'SMR': 9999999999, 'SMR CCS': 999999999999, 'Electrolyzer': 9999999999}
 
     for item in runningStage:

@@ -90,7 +90,7 @@ Parameters
 $if not set gdxincname $abort 'no include file name for data file provided'
 $gdxin %gdxincname%
 $load egu, renewegu, windegu, solaregu, hydroegu, h, z, l, dacsegu, storageegu, h2storageegu, h2egu, h2eegu, fuelcellegu, h2turbineegu, electrolyzeregu
-$load pCapac, pHr, pOpcost, pRamprate, pCO2emrate, pCO2cost, pElectrolyzerCon, pFuelCellCon, pH2TurbineCon
+$load pCapac, pHr, pOpcost, pRamprate, pCO2emrate, pCO2cost, pElectrolyzerCon, pFuelCellCon, pH2TurbineCon, pObjLimit
 $load pMaxgensolar, pMaxgenwind
 $load pH2Demand, pH2LineCapac
 $load pStoinenergymarket, pEfficiency, pMaxsoc, pMinsoc, pCapaccharge

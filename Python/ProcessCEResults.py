@@ -36,18 +36,18 @@ def saveCEBuilds(capacExpModel, iteration, rStage, resultsDir, currYear, coOptH2
                 s = pd.Series(d)
                 s.to_csv(os.path.join(resultsDir, n + str(currYear) + '.csv'))
                 newH2Lines = 0
-
-    if coOptH2:
-        for n,d in zip(['vN','vEneBuiltSto','vPowBuiltSto','vLinecapacnew','vH2Linecapacnew'],[newGenerators, newStoECap, newStoPCap, newLines, newH2Lines]):
-            s = pd.Series(d)
-            s.to_csv(os.path.join(resultsDir, n + str(currYear) + '.csv'))
-            print('***', n.upper(), '\n', s.loc[s > 0])
     else:
-        for n,d in zip(['vN','vEneBuiltSto','vPowBuiltSto','vLinecapacnew'],[newGenerators, newStoECap, newStoPCap, newLines]):
-            s = pd.Series(d)
-            s.to_csv(os.path.join(resultsDir, n + str(currYear) + '.csv'))
-            print('***', n.upper(), '\n', s.loc[s > 0])
-            newH2Lines = 0
+        if coOptH2:
+            for n,d in zip(['vN','vEneBuiltSto','vPowBuiltSto','vLinecapacnew','vH2Linecapacnew'],[newGenerators, newStoECap, newStoPCap, newLines, newH2Lines]):
+                s = pd.Series(d)
+                s.to_csv(os.path.join(resultsDir, n + str(currYear) + '.csv'))
+                print('***', n.upper(), '\n', s.loc[s > 0])
+        else:
+            for n,d in zip(['vN','vEneBuiltSto','vPowBuiltSto','vLinecapacnew'],[newGenerators, newStoECap, newStoPCap, newLines]):
+                s = pd.Series(d)
+                s.to_csv(os.path.join(resultsDir, n + str(currYear) + '.csv'))
+                print('***', n.upper(), '\n', s.loc[s > 0])
+                newH2Lines = 0
 
     #if rStage == 'MGA':
     #    vN_MGA = pd.DataFrame.from_dict(newGenerators, orient='index')
@@ -94,7 +94,8 @@ def saveCEBuilds(capacExpModel, iteration, rStage, resultsDir, currYear, coOptH2
 #Adds generators to fleet
 def addNewGensToFleet(genFleet,newGenerators,newStoECap,newStoPCap,newTechs,currYear):
     for tech,newBuilds in newGenerators.items():
-        if newBuilds>0: 
+        if newBuilds>0:
+            #print(tech,newBuilds)
             techRow = newTechs.loc[newTechs['GAMS Symbol']==tech].copy()
             #Add new info to tech row   
             techRow['Unit ID'],techRow['YearAddedCE'] = '1',currYear
@@ -102,7 +103,8 @@ def addNewGensToFleet(genFleet,newGenerators,newStoECap,newStoPCap,newTechs,curr
             #Add rows to genFleet by building full units then the remaining partial unit
             if techRow['PlantType'].values[0] != 'Hydrogen':
                 #Add rows for each full build
-                while newBuilds > 1: 
+                while newBuilds > 1:
+                    #print(newBuilds)
                     genFleet = addNewTechRowToFleet(genFleet,techRow)    
                     newBuilds -= 1
                 #Add row for partial build

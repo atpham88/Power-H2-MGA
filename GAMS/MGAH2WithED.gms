@@ -91,8 +91,8 @@ limitstorageresuptech(storagetech,h) .. vReguptech(storagetech,h) + vFlextech(st
 enforceco2emissionscap.. vCO2emsannual =l= pCO2emcap;
 ************************************************************
 
-Model mgaWithED includes all equations /all/;
-solve mgaWithED using lp minimizing vZannual;
+Model mgaH2WithED includes all equations /all/;
+solve mgaH2WithED using lp minimizing vZannual;
 
-pModelstat = mgaWithED.Modelstat;
-pSolvestat = mgaWithED.solvestat;
+pModelstat = mgaH2WithED.Modelstat;
+pSolvestat = mgaH2WithED.solvestat;
