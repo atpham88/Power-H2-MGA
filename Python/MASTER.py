@@ -428,7 +428,7 @@ def runCapacityExpansion(genFleet, demand, startYear, currYear, planningReserveM
     stoTechSet, stoTechSymbols = ceSharedFeatures(db, peakDemandHour, genFleetForCE, newTechsCE, planningReserve, discountRate, coOptH2,
                                                   currCo2Cap, hourSet, hourSymbols, newCfsCE, maxCapPerTech, regUpIncCE, flexIncCE, stoMkts,
                                                   lineDists, lineCosts, lineSet, zoneOrder, ceOps, interconn, buildLimitsCase, stoFTLabels,
-                                                  electrolyzerCon, fuelcellCon, h2TurbineCon)
+                                                  electrolyzerCon, fuelcellCon, h2TurbineCon, currYear)
     if ceOps == 'UC': ucFeatures(db, genFleetForCE, genSet),
     ceTimeDependentConstraints(db, hoursForCE, blockWeights, socScalars, ceOps, onOffInitialEachPeriod,
                                genSet, genFleetForCE, stoGenSet, stoGenSymbols, newTechsCE, stoTechSet, stoTechSymbols, initSOCFraction,
@@ -496,7 +496,7 @@ def runCapacityExpansion(genFleet, demand, startYear, currYear, planningReserveM
 def createGAMSWorkspaceAndDatabase(runOnSC):
     # currDir = os.getcwd()
     if runOnSC:
-        gamsFileDir = '/home/anph/projects/PH2/Model/GAMS'
+        gamsFileDir = '/nfs/turbo/seas-mtcraig/anph/Power_H2_MGA/Model/GAMS'
         gamsSysDir = '/home/anph/gams_35_1'
     else:
         # gamsFileDir = 'C:\\Users\\mtcraig\\Desktop\\Research\\Models\\CEGit\\GAMS'
@@ -573,12 +573,13 @@ def uc(db, stoGenSet, genSet, socInitial, onOffInitial, genAboveMinInitial, mdtC
 def ceSharedFeatures(db, peakDemandHour, genFleet, newTechs, planningReserve, discountRate, coOptH2,
                      co2Cap, hourSet, hourSymbols, newCfs, maxCapPerTech, regUpInc, flexInc, stoMkts,
                      lineDists, lineCosts, lineSet, zoneOrder, ceOps, interconn, buildLimitsCase,
-                     stoFTLabels, electrolyzerCon, fuelcellCon, h2TurbineCon):
+                     stoFTLabels, electrolyzerCon, fuelcellCon, h2TurbineCon, currYear):
 
     # Sets
     addPeakHourSubset(db, peakDemandHour)
     addStorageSubsets(db, genFleet, stoFTLabels)
-    (techSet, renewTechSet, stoTechSet, stoTechSymbols, thermalSet, dacsSet, CCSSet, h2Set, SMRSet, h2TSet) = addNewTechsSets(db, newTechs)
+    (techSet, renewTechSet, stoTechSet, stoTechSymbols, thermalSet, dacsSet,
+     CCSSet, h2Set, SMRSet, ElectrolyzerSet, h2TSet) = addNewTechsSets(db, newTechs)
 
     # Long-term planning parameters
     addPlanningReserveParam(db, planningReserve, mwToGW)
@@ -592,7 +593,7 @@ def ceSharedFeatures(db, peakDemandHour, genFleet, newTechs, planningReserve, di
     addGenParams(db, newTechs, techSet, mwToGW, lbToShortTon, zoneOrder, True)
     addTechCostParams(db, newTechs, coOptH2, techSet, stoTechSet, mwToGW)
     addRenewTechCFParams(db, renewTechSet, hourSet, newCfs)
-    addMaxNewBuilds(db, newTechs, thermalSet, stoTechSet, dacsSet, CCSSet, maxCapPerTech, coOptH2, mwToGW)
+    addMaxNewBuilds(db, newTechs, thermalSet, stoTechSet, dacsSet, CCSSet, maxCapPerTech, coOptH2, SMRSet, ElectrolyzerSet, interconn, currYear, mwToGW)
     if ceOps == 'UC': addGenUCParams(db, newTechs, techSet, mwToGW, True)
     addResIncParams(db, regUpInc, flexInc, renewTechSet, hourSet)
     addSpinReserveEligibility(db, newTechs, techSet, True)

@@ -201,7 +201,8 @@ def addBlockSOCScalars(db, scalars):
 
 
 ##### ADD LIMIT ON MAX NUMBER OF NEW BUILDS PER TECH (#)
-def addMaxNewBuilds(db, df, thermalSet, stoTechSet, dacsSet, CCSSet, maxCapPerTech, coOptH2, mwToGW):
+def addMaxNewBuilds(db, df, thermalSet, stoTechSet, dacsSet, CCSSet, maxCapPerTech, coOptH2, SMRSet, ElectrolyzerSet,
+                    interconn, currYear, mwToGW):
     # Wind & solar
     for pt in ['Wind', 'Solar']:
         genCaps = df.loc[df['FuelType'] == pt.capitalize(), 'Capacity (MW)']
@@ -248,21 +249,34 @@ def addMaxNewBuilds(db, df, thermalSet, stoTechSet, dacsSet, CCSSet, maxCapPerTe
     if coOptH2:
         # SMR
         pt = 'SMR'
-        genCaps = df.loc[df['PlantType'] == pt, 'Capacity (MW)']
-        add0dParam(db, 'pNMaxSMR', np.ceil(maxCapPerTech[pt] / genCaps.mean()))
-        pt = 'SMR CCS'
-        genCaps = df.loc[df['PlantType'] == pt, 'Capacity (MW)']
-        add0dParam(db, 'pNMaxSMRCCS', np.ceil(maxCapPerTech[pt] / genCaps.mean()))
+        if interconn == 'WECC':
+            df.loc[(df['PlantCategory'] == pt) & ((df['region'] != 'WY') & (df['region'] != 'MT')
+                                                  & (df['region'] != 'CO') & (df['region'] != 'UT')
+                                                  & (df['region'] != 'NM') & (df['region'] != 'CA')), 'Capacity (MW)'] = 0
+        techs = df.loc[(df['PlantCategory'] == pt)]
+        techs.index = techs['GAMS Symbol']
+        maxBuilds = np.ceil(maxCapPerTech[pt] / techs['Capacity (MW)']).to_dict()
+        for key, value in maxBuilds.items():
+            if math.isinf(value):
+                maxBuilds[key] = 0
+        add1dParam(db, maxBuilds, SMRSet, techs['GAMS Symbol'], 'pNMaxSMR')
 
         # Electrolyzer
         pt = 'Electrolyzer'
-        genCaps = df.loc[df['PlantType'] == pt, 'Capacity (MW)']
-        add0dParam(db, 'pNMaxElectrolyzer', np.ceil(maxCapPerTech[pt] / genCaps.mean()))
+        techs = df.loc[(df['PlantType'] == pt)]
+        techs.index = techs['GAMS Symbol']
+        maxBuilds = np.ceil(maxCapPerTech[pt] / techs['Capacity (MW)']).to_dict()
+        for key, value in maxBuilds.items():
+            if math.isinf(value):
+                maxBuilds[key] = 0
+        add1dParam(db, maxBuilds, ElectrolyzerSet, techs['GAMS Symbol'], 'pNMaxElectrolyzer')
+
         # Fuel Cell
         pt = 'Fuel Cell'
         genCaps = df.loc[df['PlantType'] == pt, 'Capacity (MW)']
         add0dParam(db, 'pNMaxFuelcell', np.ceil(maxCapPerTech[pt] / genCaps.mean()))
-        # Fuel Cell
+
+        # H2 Turbine
         pt = 'H2 Turbine'
         genCaps = df.loc[df['PlantType'] == pt, 'Capacity (MW)']
         add0dParam(db, 'PNMaxH2Turbine', np.ceil(maxCapPerTech[pt] / genCaps.mean()))

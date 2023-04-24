@@ -5,7 +5,7 @@ import pandas as pd, numpy as np, geopandas as gpd, os, sys
 # Get annual H2 demand:
 def getH2AnnualDemand(currYear, transRegions, pRegionShapes, h2DemandScr):
     h2DemandFileName = 'Hydrogen_Economic_Potential_Supply_Demand_Corrected.csv'
-    h2Demand = pd.read_csv(os.path.join('Data','H2 Demand', h2DemandFileName))
+    h2Demand = pd.read_csv(os.path.join('Data','H2Demand', h2DemandFileName))
     h2DemandGpd = gpd.GeoDataFrame(h2Demand, geometry=gpd.points_from_xy(h2Demand.longitude, h2Demand.latitude))
 
     h2Demand = h2DemandGpd.sjoin(pRegionShapes, how="inner", predicate='intersects')
