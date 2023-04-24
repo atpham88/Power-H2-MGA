@@ -328,8 +328,8 @@ maxESTSto(ststoragetech) .. vEneBuiltSto(ststoragetech) =e= pPERatio(ststoragete
 maxL(l) .. vNl(l) =l= pNMaxLine(l);
 maxH2L(l) .. vNH2l(l) =l= pNMaxH2Line(l);
 maxSR(srtech) .. vN(srtech) =l= pNMaxSR;
-maxSMR(smrtech) .. vN(SMRtech) =l= pNMaxSMR;
-maxElectrolyzer(electrolyzertech) .. vN(electrolyzertech) =l= pNMaxElectrolyzer;
+maxSMR(smrtech) .. vN(SMRtech) =l= pNMaxSMR(smrtech);
+maxElectrolyzer(electrolyzertech) .. vN(electrolyzertech) =l= pNMaxElectrolyzer(electrolyzertech);
 maxFuelcell(fuelcelltech) .. vN(fuelcelltech) =l= pNMaxFuelcell;
 maxH2Turbine(h2turbinetech) .. vN(h2turbinetech) =l= pNMaxH2Turbine;
 
