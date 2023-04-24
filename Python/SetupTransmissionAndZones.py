@@ -9,13 +9,10 @@ import pandas as pd, numpy as np, geopandas as gpd, os, sys
 #Output: dict of zone:[p-regions from REEDS] (zone is same as p-region in WECC & ERCOT since no aggregation)
 def defineTransmissionRegions(interconn,balAuths):
     transRegions = dict()
-    if balAuths == 'full':  # running full interconnection
-        if interconn == 'ERCOT':
-            transRegions = createERCOTGroupings(transRegions)
-        elif interconn == 'EI':
-            transRegions = createEIGroupings(transRegions)
-        elif interconn == 'WECC':
-            transRegions = createWECCGroupings(transRegions)
+    if balAuths == 'full': #running full interconnection
+        if interconn == 'ERCOT': transRegions = createERCOTGroupings(transRegions)
+        elif interconn == 'EI': transRegions = createEIGroupings(transRegions)
+        elif interconn == 'WECC': transRegions = createWECCGroupings(transRegions)
     else:
         sys.exit('defineTransmissionRegions not set up for non-full run!')
     return transRegions
@@ -38,29 +35,42 @@ def createEIGroupings(transRegions):
         transRegions[r] = ['p' + str(i) for i in p]
     return transRegions
 
-# https://www.wecc.org/Administrative/WARA%202021.pdf, pg 6
+#https://www.wecc.org/Administrative/WARA%202021.pdf, pg 6
 def createWECCGroupings(transRegions):
-    transRegions['NWPP_NW'] = list(range(1,8)) + [14,15]
-    transRegions['NWPP_NE'] = list(range(16,25))+[32] #32 in WECC
-    transRegions['CAMX'] = list(range(8,12))
-    transRegions['Desert_Southwest'] = list(range(27,32))+[59] #47 in EI
-    transRegions['NWPP_Central'] = [12,13,25,26,33,34]
+    #transRegions['NWPP_NW'] = list(range(1,8)) + [14,15]
+    #transRegions['NWPP_NE'] = list(range(16,25))+[32] #32 in WECC
+    #transRegions['CAMX'] = list(range(8,12))
+    #transRegions['Desert_Southwest'] = list(range(27,32))+[59] #47 in EI
+    #transRegions['NWPP_Central'] = [12,13,25,26,33,34]
+    transRegions['WA'] = [1,2,3,4]
+    transRegions['OR'] = [5,6,7]
+    transRegions['CA'] = [8,9,10,11]
+    transRegions['NV'] = [12,13]
+    transRegions['ID'] = [14,15,16]
+    transRegions['MT'] = [17,18,19,20]
+    transRegions['WY'] = [21,22,23,24]
+    transRegions['UT'] = [25,26]
+    transRegions['AZ'] = [27,28,29,30]
+    transRegions['NM'] = [31]
+    #transRegions['SD'] = [32]
+    transRegions['CO'] = [33,34]
+
     for r,p in transRegions.items():
         transRegions[r] = ['p' + str(i) for i in p]
     return transRegions
 ################################################################################
 
 ################################################################################
-def setupTransmissionAndZones(genFleetFull,transRegions,interconn,balAuths):
+def setupTransmissionAndZones(genFleetFull, transRegions, interconn, balAuths):
     #Read regions and map to zones
     pRegionShapes = loadRegions(transRegions)
     #Assign generators to zones (through p-regions)
-    genFleet = assignGensToPRegions(genFleetFull.copy(),pRegionShapes)
-    if interconn == 'ERCOT': genFleet = pd.concat([genERCOTRegionReassign(genFleetFull.copy()),genFleet])
-    checkZones(genFleet,transRegions) 
+    genFleet = assignGensToPRegions(genFleetFull.copy(), pRegionShapes)
+    if interconn == 'ERCOT': genFleet = pd.concat([genERCOTRegionReassign(genFleetFull.copy()), genFleet])
+    checkZones(genFleet, transRegions)
     #Get transmission constraints between zones
-    limits,limitsH2,costs,dists = getTransmissionData(interconn,transRegions,pRegionShapes)
-    return genFleet,transRegions,limits,limitsH2,dists,costs,pRegionShapes
+    limits,limitsH2,costs,dists = getTransmissionData(interconn, transRegions, pRegionShapes)
+    return genFleet, transRegions, limits, limitsH2, dists, costs, pRegionShapes
 
 ############################
 def loadRegions(transRegions):
@@ -72,7 +82,7 @@ def loadRegions(transRegions):
     return pRegionShapes
 
 def importPRegions():
-    return gpd.read_file(os.path.join('Data','REEDS','Shapefiles','PCAs.shp'))
+    return gpd.read_file(os.path.join('Data', 'REEDS', 'Shapefiles', 'PCAs.shp'))
 
 def getAllPRegions(transRegions):
     allPRegions = list()
@@ -81,8 +91,8 @@ def getAllPRegions(transRegions):
 
 def reverseTransRegions(transRegions):
     transRegionsReversed = dict()
-    for zone,pRegions in transRegions.items(): 
-        for p in pRegions: 
+    for zone,pRegions in transRegions.items():
+        for p in pRegions:
             transRegionsReversed[p] = zone
     return transRegionsReversed
 
@@ -95,14 +105,14 @@ def assignGensToPRegions(genFleet,pRegionShapes):
     return genFleet
 
 ############################
-#REEDS regions don't cover many ERCOT generators, so push ERCOT gens outside of 
+#REEDS regions don't cover many ERCOT generators, so push ERCOT gens outside of
 #REEDS ERCOT bounds into ERCOT per regionSubs.
 def genERCOTRegionReassign(genFleet):
-    regionSubs = {'p57':'p63','p48':'p60','p66':'p64'}
+    regionSubs = {'p57':'p63', 'p48':'p60', 'p66':'p64'}
     pRegionShapes = importPRegions()
     pRegionShapes = pRegionShapes.loc[pRegionShapes['PCA_Code'].isin([k for k in regionSubs])]
     pRegionShapes['region'] = pRegionShapes['PCA_Code'].map(regionSubs)
-    genFleet = assignGensToPRegions(genFleet,pRegionShapes)
+    genFleet = assignGensToPRegions(genFleet, pRegionShapes)
     return genFleet
 
 ###########################
@@ -115,19 +125,18 @@ def checkZones(genFleet,transRegions):
 
 ##########################
 def getTransmissionData(interconn,transRegions,pRegionShapes):
-    # Import raw transmission data from REEDS
+    #Import raw transmission data from REEDS
     limits,costs,dists = importTransmissionData(interconn)
-    # Filter data to p-regions of interest and, if using larger regions, combine p-region data
+    #Filter data to p-regions of interest and, if using larger regions, combine p-region data
     limits,costs,dists = filterOrCombineTransmissionData(interconn,limits,costs,dists,transRegions,pRegionShapes)
     dists,limits,costs = expandTransmissionData(interconn,limits,costs,dists)
-    # Should have distances, costs, and limits for all possible lines; if not, need to align (likely add zero existing capacities).
     assert((dists.shape[0] == limits.shape[0]) and (dists.shape[0] == costs.shape[0]))
-    # Add AC and DC transmission capacity
+    #Add AC and DC transmission capacity
     limits['TotalCapacity'] = limits['AC'] + limits['DC']
-    # Add GAMS symbols
+    #Add GAMS symbols
     for df in [dists,limits,costs]: df['GAMS Symbol'] = df['r'] + df['rr']
     limitsH2 = limits
-    limitsH2['TotalCapacity'] = limits['TotalCapacity'] * 0
+    limitsH2['TotalCapacity'] = limits['TotalCapacity']*0
     return limits,limitsH2,costs,dists
 
 def importTransmissionData(interconn):
@@ -142,11 +151,11 @@ def filterOrCombineTransmissionData(interconn,limits,costs,dists,transRegions,pR
     limits = limits.loc[limits['r'].isin(pRegions)]
     limits = limits.loc[limits['rr'].isin(pRegions)]
     costs = costs.loc[costs['r'].isin(pRegions)]
-    # If have multi-p-region zones, aggregate transmission data (median of costs & distances; sum of initial capacity)
+    #If have multi-p-region zones, aggregate transmission data (median of costs & distances; sum of initial capacity)
     if interconn == 'EI' or interconn == 'WECC':
-        # Get total inter-regional transmission limits per REEDS data
-        limits, costs = getInterregionalLimitsAndCostsForAggregatedPRegions(transRegions, limits, costs)
-        # Get regional (instead of p-region) centroids for distance calculations
+        #Get total inter-regional transmission limits per REEDS data
+        limits,costs = getInterregionalLimitsAndCostsForAggregatedPRegions(transRegions,limits,costs)
+        #Get regional (instead of p-region) centroids for distance calculations
         regionShapes = pRegionShapes.dissolve(by='region')
         centroids = regionShapes.centroid
         #For each unique bidirectional regional pair, get distances.
@@ -166,7 +175,7 @@ def filterOrCombineTransmissionData(interconn,limits,costs,dists,transRegions,pR
 # E.g., p87 to p88 has 1 value that is NOT repeated for p88 to p87. So need to combine
 # limits between regions independent of direction.
 def getInterregionalLimitsAndCostsForAggregatedPRegions(transRegions,limits,costs):
-    # Map p-regions to zones for aggregation
+    #Map p-regions to zones for aggregation
     transRegionsReversed = reverseTransRegions(transRegions)
     limits['rZone'] = limits['r'].map(transRegionsReversed)
     limits['rrZone'] = limits['rr'].map(transRegionsReversed)
@@ -193,20 +202,20 @@ def getInterregionalLimitsAndCostsForAggregatedPRegions(transRegions,limits,cost
     return pd.concat(totalLimits,axis=1).T,pd.concat(medianCosts,axis=1).T
 
 #Calculate distance between two coordinates using haversine formula.
-def haversine(centR,centRR,kmToMi=0.621371):
+def haversine(centR, centRR, kmToMi=0.621371):
     latR,lonR = np.radians(centR.y),np.radians(centR.x)
-    latRR,lonRR = np.radians(centRR.y),np.radians(centRR.x)
+    latRR,lonRR = np.radians(centRR.y), np.radians(centRR.x)
     R = 6378.137 #km; mean Earth radius
     h = (np.sin((latR-latRR)/2))**2 + np.cos(latR) * np.cos(latRR) * (np.sin((lonR-lonRR)/2))**2
     c = 2 * np.arcsin(np.sqrt(h))
     return R*c*kmToMi #dist in mi
 
-# Expand transmission data by (1) reversing source-sink line limits & (2) mapping costs to lines (not regions)
-# & (3) add GAMS symbols as r + rr.
+#Expand transmission data by (1) reversing source-sink line limits & (2) mapping costs to lines (not regions)
+#& (3) add GAMS symbols as r + rr.
 def expandTransmissionData(interconn, limits, costs, dists):
     # Reverse source-sink limits
     limits = addReversedLines(limits)
-    if interconn == 'EI'  or interconn == 'WECC': # reverse dist & cost limits
+    if interconn == 'EI' or interconn == 'WECC': #reverse dist & cost limits
         costsAllLines,dists = addReversedLines(costs),addReversedLines(dists)
     else: #map costs to lines using dists df, which has all pairwise combos
         costs = costs.set_index(costs['r'].values).to_dict()['cost($/mw-mile)']
