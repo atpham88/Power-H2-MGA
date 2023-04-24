@@ -13,7 +13,7 @@ def writeTimeDependentConstraints(blockNamesChronoList, stoInCE, seasSto, gamsFi
    eqnText = writeEquationsNames(blockNamesChronoList, stoInCE, seasSto, ceOps, removeHydro)
    eqnText += writeEquations(blockNamesChronoList, stoInCE, seasSto, ceOps, lastRepBlockNames, specialBlocksPrior, removeHydro)
    allText = setText + paramText + importText + paramDefns + setDefns + varText + eqnText
-   g = open(os.path.join(gamsFileDir,'CETimeDependentConstraints.gms'),'w')
+   g = open(os.path.join(gamsFileDir,'CETimeDependentConstraintsH2.gms'),'w')
    g.write(allText)
    g.close()
 
