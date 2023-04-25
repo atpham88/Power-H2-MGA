@@ -3,7 +3,7 @@
 from MASTER import *
 
 def main():
-    modelType = 'MGA'                                    # Type of model to run (CE or MGA)
+    modelType = 'MGA'                                   # Type of model to run (CE or MGA)
 
     coOptH2 = True
     h2DemandScr = 'Reference'                           # Scenario for H2 demand
@@ -15,7 +15,7 @@ def main():
 
     # ### STUDY AREA AND METEOROLOGICAL-DEPENDENT DATA
     metYear = 2012                                      # year of meteorological data used for demand and renewables
-    interconn = 'WECC'                                 # which interconnection to run - ERCOT, WECC, EI
+    interconn = 'WECC'                                  # which interconnection to run - ERCOT, WECC, EI
     balAuths = 'full'                                   # full: run for all BAs in interconn. TODO: add selection of a subset of BAs.
     electrifiedDemand = True                            # whether to import electrified demand futures from NREL EFS
     elecDemandScen = 'REFERENCE'                        # 'REFERENCE','HIGH','MEDIUM' (ref is lower than med)
@@ -23,7 +23,7 @@ def main():
     fixDays = False
 
     annualDemandGrowth = 0                              # fraction demand growth per year - ignored if use EFS data (electrifieDemand=True)
-    reDownFactor = 4                                    # downscaling factor for W&S new CFs; 1 means full resolution, 2 means half resolution, 3 is 1/3 resolution, etc
+    reDownFactor = 10                                   # downscaling factor for W&S new CFs; 1 means full resolution, 2 means half resolution, 3 is 1/3 resolution, etc
 
     # ### BUILD SCENARIO
     buildLimitsCase = 1                                 # 1 = reference case,
@@ -84,7 +84,10 @@ def main():
     h2TurbineCon = 0.047                                # 0.047 ton H2 >> 1 MWh (based on 65% efficiency H2 turbine)
 
     # ### MGA OPTIONS:
-    maxIter = 200                                         # Maximum number of iterations
+    maxIter = 200                                       # Maximum number of iterations
+
+    # ### TOTAL COST BUFFER:
+    costBuffer = 0.1                                    # Allow total cost to be this much higher than least cost solution
 
     # ### LIMITS ON TECHNOLOGY DEPLOYMENT (max added MW per CE run (W&S by cell))
     # wind: 2000, solar: 17000
@@ -92,7 +95,7 @@ def main():
                      'Storage': 100000000, 'Dac': -9999999, 'CCS': 9999999999, 'Nuclear': 9999999999, 'Battery Storage': 1000000000,
                      'Hydrogen': 100000000, 'Transmission': 100000000, 'SR':9999999999, 'Fuel Cell': 999999999999, 'H2 Turbine': 9999999999,
                      'SMR': 9999999999, 'SMR CCS': 999999999999, 'Electrolyzer': 9999999999}
-    if not incSR: maxCapPerTech['SR'] = 0
+    if not incSR: maxCapPerTech['SR'] = 1
 
     for item in runningStage:
         rStage = item
@@ -108,7 +111,7 @@ def main():
                                                         iterationLast, transmissionEff, h2DemandScr, coOptH2, electrolyzerCon, fuelcellCon, h2TurbineCon)
         elif rStage == 'MGA':
             fval = pd.read_csv(projectPath + resultsCE + "\\vZannualCE" + str(endYear-1) + ".csv", header=None)
-            objLimit = fval.iloc[0, 0]*1.1
+            objLimit = fval.iloc[0, 0]*(1+costBuffer)
             while iteration <= maxIter:
                 (resultsMGA, mgaWeight,
                  newGenspD, iterationLast) = masterFunction(rStage, objLimit, metYear, interconn, balAuths, electrifiedDemand, elecDemandScen, reSourceMERRA, fixDays, planNESystem,

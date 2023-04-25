@@ -363,7 +363,7 @@ def runCapacityExpansion(genFleet, demand, startYear, currYear, planningReserveM
         if pt[item] == 'Wind' or pt[item] == 'Solar':
             newTechsCE.loc[newTechsCE['PlantType'].str.contains(pt[item].lower()), 'Max Zonal Cap'] = maxCapPerTech[pt[item]]/newTechsCE['Capacity (MW)']
         elif pt[item] == 'Hydrogen' or pt[item] == 'Battery Storage':
-            newTechsCE.loc[newTechsCE['PlantType'].str.contains(pt[item]), 'Max Zonal Cap'] = maxCapPerTech[pt[item]] / mwToGW
+            newTechsCE.loc[newTechsCE['PlantType'].str.contains(pt[item]), 'Max Zonal Cap'] = maxCapPerTech[pt[item]]/mwToGW
         else:
             newTechsCE.loc[newTechsCE['PlantType'].str.contains(pt[item]), 'Max Zonal Cap'] = maxCapPerTech[pt[item]]/newTechsCE['Capacity (MW)']
 
