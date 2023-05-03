@@ -37,23 +37,23 @@ def createEIGroupings(transRegions):
 
 #https://www.wecc.org/Administrative/WARA%202021.pdf, pg 6
 def createWECCGroupings(transRegions):
-    #transRegions['NWPP_NW'] = list(range(1,8)) + [14,15]
-    #transRegions['NWPP_NE'] = list(range(16,25))+[32] #32 in WECC
-    #transRegions['CAMX'] = list(range(8,12))
-    #transRegions['Desert_Southwest'] = list(range(27,32))+[59] #47 in EI
-    #transRegions['NWPP_Central'] = [12,13,25,26,33,34]
-    transRegions['WA'] = [1,2,3,4]
-    transRegions['OR'] = [5,6,7]
-    transRegions['CA'] = [8,9,10,11]
-    transRegions['NV'] = [12,13]
-    transRegions['ID'] = [14,15,16]
-    transRegions['MT'] = [17,18,19,20]
-    transRegions['WY'] = [21,22,23,24]
-    transRegions['UT'] = [25,26]
-    transRegions['AZ'] = [27,28,29,30]
-    transRegions['NM'] = [31]
+    transRegions['NWPP_NW'] = list(range(1,8)) + [14,15]
+    transRegions['NWPP_NE'] = list(range(16,25))+[32] #32 in WECC
+    transRegions['CAMX'] = list(range(8,12))
+    transRegions['Desert_Southwest'] = list(range(27,32))+[59] #47 in EI
+    transRegions['NWPP_Central'] = [12,13,25,26,33,34]
+    #transRegions['WA'] = [1,2,3,4]
+    #transRegions['OR'] = [5,6,7]
+    #transRegions['CA'] = [8,9,10,11]
+    #transRegions['NV'] = [12,13]
+    #transRegions['ID'] = [14,15,16]
+    #transRegions['MT'] = [17,18,19,20]
+    #transRegions['WY'] = [21,22,23,24]
+    #transRegions['UT'] = [25,26]
+    #transRegions['AZ'] = [27,28,29,30]
+    #transRegions['NM'] = [31]
     #transRegions['SD'] = [32]
-    transRegions['CO'] = [33,34]
+    #transRegions['CO'] = [33,34]
 
     for r,p in transRegions.items():
         transRegions[r] = ['p' + str(i) for i in p]

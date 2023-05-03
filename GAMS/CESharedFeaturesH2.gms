@@ -28,7 +28,7 @@ Sets
             h2turbinetech(h2etech)          H2 turbines
 *Storage
          storagetech(tech)                  storage plant types for new construction
-            ststoragetech(storagetech)      new battery storage [GWh]
+            ststoragetech(storagetech)      new battery storage [MWh]
             ltstoragetech(storagetech)      new h2 storage [ton]
          nonstoragetech(tech)               non storage techs
                 
@@ -64,14 +64,12 @@ Parameters
                  PNMaxH2Turbine
 *SIZE PARAMETERS [GW]
          pCapactech(tech)                       nameplate capacity of new builds for cost calculations [GW] or [ton]
-         pMaxZCaptech(tech)                     max capacity allowed to be built by zone [GW]
-         pWeighttech(tech)                      Coefficients of capacity investment variables for MGA (initial = 1)
 *HEAT RATES [MMBtu/GWh]
          pHrtech(tech)                          heat rate of new builds [MMBtu per GWh]
 *COST PARAMETERS
          pOpcosttech(tech)                      total operational cost [thousandUSD per GWh] = VOM + FuelCost*HR + EmsCost*EmsRate*HR
          pFom(tech)                             fixed O&M cost [thousand$ per GW per yr]
-         pOcc(tech)                             overnight capital cost [thousandUSD per GW] or [thousandUSD per ton]
+         pOcc(tech)                             overnight capital cost [thousandUSD per GW] or [thousandUSD per thousand ton]
                  pPowOcc(storagetech)           occ for power capcity for lt storage
                  pEneOcc(storagetech)           occ for energy capacity for lt storage
 *                pCnse                          cost of nonserved energy [thousandUSD per GW]
@@ -120,8 +118,8 @@ Parameters
 $if not set gdxincname $abort 'no include file name for data file provided'
 $gdxin %gdxincname%
 $load ststorageegu, ltstorageegu, tech, dacstech, thermaltech, CCStech, nucleartech, srtech, CCtech, renewtech, solartech, windtech, storagetech, ststoragetech, ltstoragetech, peakH
-$load h2tech, electrolyzertech, SMRtech, h2etech, fuelcelltech, h2turbinetech
-$load pNMaxWind, pNMaxSolar, pNMaxNuclear, pNMaxSR, pNMaxCC, pNMaxCCS, pNMaxDACS, pPMaxSto, pEMaxSto, pCapactech, pHrtech, pOpcosttech, pMaxZCaptech, pWeighttech
+$load h2tech, electrolyzertech, smrtech, h2etech, fuelcelltech, h2turbinetech
+$load pNMaxWind, pNMaxSolar, pNMaxNuclear, pNMaxSR, pNMaxCC, pNMaxCCS, pNMaxDACS, pPMaxSto, pEMaxSto, pCapactech, pHrtech, pOpcosttech
 $load pNMaxSMR, pNMaxElectrolyzer, pNMaxFuelcell, PNMaxH2Turbine
 $load pNMaxH2Line, pH2Lifeline, pH2Linecost
 $load pFom, pOcc, pPowOcc, pEneOcc, pRampratetech, pCO2emratetech
@@ -152,7 +150,7 @@ Variable
          vVarcosttech(tech,h)
          vVarcostannual                  total variable costs for new and existing plants = variable O&M + fuel + emission costs [thousandUSD per yr]
          vFixedcostannual                total investment costs for new plants = fixed O&M + overnight capital costs [thousandUSD per yr]
-         vGentech(tech,h)                hourly electricity generation by new plants [GWh] or [ton]
+         vGentech(tech,h)                hourly electricity or H2 generation by new plants [GWh] or [ton]
 *Emission variables
          vCO2emstech(tech,h)
          vCO2emsannual                   co2 emissions in entire year from new and existing plants [short ton]
@@ -167,13 +165,13 @@ Positive variables
          vFlextech(tech,h)
          vConttech(tech,h)
 *Storage
-         vStateofchargetech(storagetech,h)              "energy stored in storage unit at end of hour h (GWh)"
-         vChargetech(storagetech,h)                     "charged energy by storage unit in hour h (GWh)"
-         vPowBuiltSto(storagetech)                      built power capacity for storage
-         vEneBuiltSto(storagetech)                      built energy capacity for storage
+         vStateofchargetech(storagetech,h)              "energy stored in storage unit at end of hour h [GWh]"
+         vChargetech(storagetech,h)                     "charged energy by storage unit in hour h [GWh]"
+         vPowBuiltSto(storagetech)                       built power capacity for storage
+         vEneBuiltSto(storagetech)                       built energy capacity for storage
 *Inputs for electrolyzers, fuel cells and H2 turbines:
-         vELChargetech(electrolyzertech,h)              electricity input to power electrolyzer
-         vH2TChargetech(h2etech,h)                      hydrogen input to power H2T tech (hydrogen turbines + fuel cells)
+         vELChargetech(electrolyzertech,h)               electricity input to power electrolyzer [GWh]
+         vH2TChargetech(h2etech,h)                       hydrogen input to power H2T tech (hydrogen turbines + fuel cells) [ton]
 *Line builds and flows
          vNl(l)
          vLinecapacnew(l)
@@ -219,7 +217,7 @@ Equations
                                  maxL(l)
                                  maxH2l(l)
                  maxSR(srtech)
-                 maxSMR(SMRtech)
+                 maxSMR(smrtech)
                  maxElectrolyzer(electrolyzertech)
                  maxFuelcell(fuelcelltech)
                  maxH2Turbine(h2turbinetech)
@@ -245,7 +243,7 @@ investmentcost..         vFixedcostannual =e= sum(nonstoragetech,vN(nonstoragete
                                                  
 ***************************************************
 
-******************SYSTEM-WIDE GENERATION AND RESERVE CONSTRAINTS******************* vH2TChargetech
+******************SYSTEM-WIDE GENERATION AND RESERVE CONSTRAINTS*******************
 *Demand = generation by new and existing plants
 meetdemand(z,h)..          sum(thermaltech$[pGenzonetech(thermaltech)=ORD(z)],vGentech(thermaltech,h)) + sum(renewtech$[pGenzonetech(renewtech)=ORD(z)],vGentech(renewtech,h))
                                                         + sum(h2etech$[pGenzonetech(h2etech)=ORD(z)],vGentech(h2etech,h)) + sum(egenegu$[pGenzone(egenegu)=ORD(z)],vGen(egenegu,h))
@@ -302,7 +300,7 @@ vGentech.up(dacstech,h) = 0;
 
 
 ******************ELECTROLYZER CONSTRAINT******************
-electrolyzerconversiontech(electrolyzertech,h)..   vELChargetech(electrolyzertech,h) =e= vGentech(electrolyzertech,h)*(pElectrolyzerCon/1000);
+electrolyzerconversiontech(electrolyzertech,h)..   vELChargetech(electrolyzertech,h) =e= vGentech(electrolyzertech,h)*pElectrolyzerCon/1000;
 ************************************************************
 
 ******************FUEL CELL CONSTRAINT******************
@@ -328,7 +326,7 @@ maxESTSto(ststoragetech) .. vEneBuiltSto(ststoragetech) =e= pPERatio(ststoragete
 maxL(l) .. vNl(l) =l= pNMaxLine(l);
 maxH2L(l) .. vNH2l(l) =l= pNMaxH2Line(l);
 maxSR(srtech) .. vN(srtech) =l= pNMaxSR;
-maxSMR(smrtech) .. vN(SMRtech) =l= pNMaxSMR(smrtech);
+maxSMR(smrtech) .. vN(smrtech) =l= pNMaxSMR(smrtech);
 maxElectrolyzer(electrolyzertech) .. vN(electrolyzertech) =l= pNMaxElectrolyzer(electrolyzertech);
 maxFuelcell(fuelcelltech) .. vN(fuelcelltech) =l= pNMaxFuelcell;
 maxH2Turbine(h2turbinetech) .. vN(h2turbinetech) =l= pNMaxH2Turbine;

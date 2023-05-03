@@ -39,8 +39,6 @@ Parameters
          pCO2emrate(egu)                 CO2 emissions rate of existing generators [short ton per MMBtu]
 *EMISSIONS COST [$/short ton]
          pCO2cost
-*LEAST-COST OBJ FUNCTION LIMIT
-         pObjLimit        
 *Conversion[MWh/kg or GWh/ton]         
          pElectrolyzerCon
          pFuelCellCon
@@ -90,7 +88,7 @@ Parameters
 $if not set gdxincname $abort 'no include file name for data file provided'
 $gdxin %gdxincname%
 $load egu, renewegu, windegu, solaregu, hydroegu, h, z, l, dacsegu, storageegu, h2storageegu, h2egu, h2eegu, fuelcellegu, h2turbineegu, electrolyzeregu
-$load pCapac, pHr, pOpcost, pRamprate, pCO2emrate, pCO2cost, pElectrolyzerCon, pFuelCellCon, pH2TurbineCon, pObjLimit
+$load pCapac, pHr, pOpcost, pRamprate, pCO2emrate, pCO2cost, pElectrolyzerCon, pFuelCellCon, pH2TurbineCon
 $load pMaxgensolar, pMaxgenwind
 $load pH2Demand, pH2LineCapac
 $load pStoinenergymarket, pEfficiency, pMaxsoc, pMinsoc, pCapaccharge
@@ -204,13 +202,13 @@ calcco2ems(egu,h)..   vCO2ems(egu,h) =e= vGen(egu,h)*pHr(egu)*pCO2emrate(egu);
 ************************************************************
 
 ******************ELECTROLYZER CONSTRAINT******************
-electrolyzerconversion(electrolyzeregu,h)..   vELCharge(electrolyzeregu,h) =e= vGen(electrolyzeregu,h)*pElectrolyzerCon;
+electrolyzerconversion(electrolyzeregu,h)..   vELCharge(electrolyzeregu,h) =e= vGen(electrolyzeregu,h)*pElectrolyzerCon/1000;
 ************************************************************
 
 ******************FUEL CELL CONSTRAINT******************
-fuelcellconversion(fuelcellegu,h)..   vH2TCharge(fuelcellegu,h) =e= vGen(fuelcellegu,h)*pFuelCellCon;
+fuelcellconversion(fuelcellegu,h)..   vH2TCharge(fuelcellegu,h) =e= vGen(fuelcellegu,h)/(pFuelCellCon*1000);
 ************************************************************
 
 ******************H2 TURBINE CONSTRAINT******************
-h2turbineconversion(h2turbineegu,h)..   vH2TCharge(h2turbineegu,h) =e= vGen(h2turbineegu,h)*pH2TurbineCon;
+h2turbineconversion(h2turbineegu,h)..   vH2TCharge(h2turbineegu,h) =e= vGen(h2turbineegu,h)/(pH2TurbineCon*1000);
 ************************************************************
