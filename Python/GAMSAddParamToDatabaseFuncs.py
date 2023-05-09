@@ -279,10 +279,12 @@ def addNewLineParams(db, lineDists, lineCosts, lineSet, maxCapPerTech, buildLimi
     maxH2LineCapac = 38.8/1.10231 # per unit if pipeline unit (ton)
     h2Cost = 3.72*1e6*(1/maxH2LineCapac)*dist
     h2LineLife = 40  # Years
+    maxH2Capacs = pd.Series(maxCapPerTech['Pipeline'], index=h2Cost.index) # ton
     add1dParam(db, h2Cost.to_dict(), lineSet, h2Cost.index, 'pH2Linecost')
     add0dParam(db, 'pH2Lifeline', h2LineLife)
     # Maximum H2 pipeline capacity (metric ton)
-    add1dParam(db, pd.Series(maxH2LineCapac, index=h2Cost.index).to_dict(), lineSet, h2Cost.index, 'pNMaxH2Line')
+    add1dParam(db, maxH2Capacs.to_dict(), lineSet, maxH2Capacs.index, 'pNMaxH2Line')
+    #add1dParam(db, pd.Series(maxH2LineCapac, index=h2Cost.index).to_dict(), lineSet, h2Cost.index, 'pNMaxH2Line')
 
 ##### ADD INITIAL COMMITMENT STATE FOR EXISTING GENS FOR EACH TIME BLOCK
 def addInitialOnOffForEachBlock(db, onOffInitialEachPeriod,genSet):

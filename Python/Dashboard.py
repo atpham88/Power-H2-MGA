@@ -94,7 +94,7 @@ def main():
     maxCapPerTech = {'Wind': 20000 * reDownFactor, 'Solar': 170000 * reDownFactor, 'Thermal': 999999, 'Combined Cycle': 5000000000,
                      'Storage': 100000000, 'Dac': -9999999, 'CCS': 9999999999, 'Nuclear': 9999999999, 'Battery Storage': 1000000000,
                      'Hydrogen': 100000000, 'Transmission': 100000000, 'SR':9999999999, 'Fuel Cell': 999999999999, 'H2 Turbine': 9999999999,
-                     'SMR': 9999999999, 'SMR CCS': 999999999999, 'Electrolyzer': 9999999999}
+                     'SMR': 9999999999, 'SMR CCS': 999999999999, 'Electrolyzer': 9999999999, 'Pipeline': 100000000}
     if not incSR: maxCapPerTech['SR'] = 1
 
     for item in runningStage:
